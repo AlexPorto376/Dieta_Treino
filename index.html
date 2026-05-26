@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-PT">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>App MetaHOMA - Opção 1 (Dark Néon)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
+
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -15,11 +18,16 @@
             color: #f8fafc;
         }
 
-        h1, h2, .homa-value {
+        h1,
+        h2,
+        .homa-value {
             font-family: 'Orbitron', sans-serif;
         }
 
-        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
 
         .app-container {
             max-width: 400px;
@@ -44,7 +52,7 @@
         .card-neon::before {
             content: "";
             position: absolute;
-            inset: -2px; 
+            inset: -2px;
             border-radius: 26px;
             background: linear-gradient(60deg, #06b6d4, #a855f7, #ec4899, #06b6d4);
             background-size: 300% 300%;
@@ -64,9 +72,17 @@
         }
 
         @keyframes brilhoNeon {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
         }
 
         .checkbox-cyber {
@@ -81,6 +97,7 @@
             transition: all 0.3s ease;
             background: #1e293b;
         }
+
         .checkbox-cyber::before {
             content: "✓";
             font-size: 16px;
@@ -89,16 +106,17 @@
             transform: scale(0);
             transition: 0.2s transform ease-in-out;
         }
+
         .checkbox-cyber:checked {
             border-color: #06b6d4;
             background: #06b6d4;
             box-shadow: 0 0 15px rgba(6, 182, 212, 0.6);
         }
+
         .checkbox-cyber:checked::before {
             transform: scale(1);
         }
 
-        /* Checkbox específico para treino (cor diferente) */
         .checkbox-treino:checked {
             border-color: #a855f7;
             background: #a855f7;
@@ -120,48 +138,63 @@
             background-color: rgba(15, 23, 42, 0.85);
         }
 
-        /* Classes para navegação de abas */
         .nav-btn.active {
             color: #06b6d4;
         }
+
         .nav-btn.active i {
-            filter: drop-shadow(0 0 8px rgba(6,182,212,0.8));
+            filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.8));
         }
+
         .nav-indicator {
             display: none;
         }
+
         .nav-btn.active .nav-indicator {
             display: block;
         }
 
-        /* Estilo para a barra de scroll oculta mas funcional */
         .hide-scroll::-webkit-scrollbar {
             display: none;
         }
+
         .hide-scroll {
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
     </style>
 </head>
+
 <body class="flex items-center justify-center min-h-screen">
 
     <div class="app-container p-6 relative">
-        
+
         <!-- HEADER GLOBAL -->
         <header class="flex justify-between items-center mb-6 mt-2">
             <div>
                 <p class="text-slate-400 text-sm font-medium">Bom dia,</p>
-                <h1 class="text-xl font-bold text-cyan-400 tracking-wider">JOÃO SILVA</h1>
+                <!-- Nome clicável protegido com ID -->
+                <h1 id="user-name-display" onclick="editarNome()"
+                    class="text-xl font-bold text-cyan-400 tracking-wider cursor-pointer hover:text-cyan-200 transition-colors"
+                    title="Clique para alterar seu nome">JOÃO SILVA</h1>
             </div>
-            <div class="w-14 h-14 rounded-full border-2 border-cyan-500 p-0.5 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
-                <img src="https://placehold.co/100x100/06b6d4/000000?text=JS" alt="Perfil" class="w-full h-full rounded-full object-cover">
-            </div>
+
+            <!-- FOTO DE PERFIL / INICIAIS: Corrigido com tag Label para nunca ser bloqueado -->
+            <label
+                class="relative w-14 h-14 rounded-full border-2 border-cyan-500 p-0.5 shadow-[0_0_15px_rgba(6,182,212,0.3)] cursor-pointer group"
+                title="Clique para alterar a foto">
+                <img id="profile-img" src="https://placehold.co/100x100/06b6d4/000000?text=JS" alt="Perfil"
+                    class="w-full h-full rounded-full object-cover">
+                <div
+                    class="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity m-0.5">
+                    <i class="ph-bold ph-camera text-white text-xl"></i>
+                </div>
+                <input type="file" id="profile-upload" accept="image/*" class="hidden"
+                    onchange="atualizarFotoPerfil(event)">
+            </label>
         </header>
 
-        <!-- ==========================================
-             VIEW 1: HOME (DIETA E HOMA-IR)
-             ========================================== -->
+        <!-- VIEW 1: HOME (DIETA E HOMA-IR) -->
         <div id="view-home" class="block pb-24 fade-in">
             <!-- CARD 1: HOMA-IR -->
             <div class="card-neon p-6">
@@ -173,22 +206,28 @@
                         </h2>
                         <p class="text-xs text-slate-400 mt-1 font-sans">Sensibilidade à Insulina</p>
                     </div>
-                    <div class="bg-slate-800 px-3 py-1 rounded-full text-xs font-bold text-cyan-400 border border-cyan-900 shadow-sm">
+                    <div
+                        class="bg-slate-800 px-3 py-1 rounded-full text-xs font-bold text-cyan-400 border border-cyan-900 shadow-sm">
                         META: 2.0
                     </div>
                 </div>
-                
+
                 <div class="flex items-end gap-3 mt-4">
-                    <span class="text-6xl font-bold text-white tracking-tighter homa-value">10.89</span>
-                    <div class="flex items-center text-emerald-400 text-sm mb-2 font-medium bg-emerald-950/50 px-2 py-1 rounded-lg border border-emerald-900">
+                    <span id="homa-ir-display" onclick="editarHomaIR()"
+                        class="text-6xl font-bold text-white tracking-tighter homa-value cursor-pointer hover:text-cyan-200 transition-colors"
+                        title="Clique para atualizar seu HOMA-IR">10.89</span>
+                    <div
+                        class="flex items-center text-emerald-400 text-sm mb-2 font-medium bg-emerald-950/50 px-2 py-1 rounded-lg border border-emerald-900">
                         <i class="ph-bold ph-trend-down mr-1"></i>
                         A baixar
                     </div>
                 </div>
 
                 <div class="w-full bg-slate-800 rounded-full h-2 mt-6 overflow-hidden flex shadow-inner relative">
-                    <div class="bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 w-full h-full opacity-80"></div>
-                    <div class="absolute w-3 h-3 bg-white rounded-full mt-[-2px] shadow-[0_0_10px_white]" style="left: 80%;"></div>
+                    <div class="bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 w-full h-full opacity-80">
+                    </div>
+                    <div class="absolute w-3 h-3 bg-white rounded-full mt-[-2px] shadow-[0_0_10px_white]"
+                        style="left: 80%;"></div>
                 </div>
                 <div class="flex justify-between text-[10px] text-slate-400 mt-2 font-medium tracking-wider font-sans">
                     <span class="text-cyan-400">IDEAL (2.0)</span>
@@ -199,37 +238,48 @@
 
             <!-- GRID SECUNDÁRIO: Macros e Treino -->
             <div class="grid grid-cols-2 gap-4 mb-8">
-                <!-- Proteína -->
                 <div class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700 relative overflow-hidden group">
                     <div class="absolute -right-4 -top-4 w-16 h-16 bg-purple-900/20 rounded-full z-0 blur-xl"></div>
                     <i class="ph-fill ph-lightning text-purple-400 text-3xl mb-2 relative z-10"></i>
                     <p class="text-xs text-slate-400 relative z-10 font-sans">Proteína Diária</p>
-                    <p class="text-xl font-bold text-white relative z-10 homa-value"><span id="protein-count">0</span><span class="text-xs text-slate-500 font-medium">/175g</span></p>
-                    
+                    <p class="text-xl font-bold text-white relative z-10 homa-value"><span
+                            id="protein-count">0</span><span class="text-xs text-slate-500 font-medium">/175g</span></p>
                     <div class="w-full bg-slate-700 rounded-full h-1.5 mt-3 relative z-10">
-                        <div id="protein-bar" class="bg-purple-500 h-1.5 rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]" style="width: 0%"></div>
+                        <div id="protein-bar"
+                            class="bg-purple-500 h-1.5 rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]"
+                            style="width: 0%"></div>
                     </div>
                 </div>
 
-                <!-- Treino -->
                 <div class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700 relative overflow-hidden group">
                     <div class="absolute -right-4 -top-4 w-16 h-16 bg-cyan-900/20 rounded-full z-0 blur-xl"></div>
                     <i class="ph-fill ph-barbell text-cyan-400 text-3xl mb-2 relative z-10"></i>
-                    <p class="text-xs text-slate-400 relative z-10 font-sans">Treino de Força</p>
-                    <p class="text-xl font-bold text-white relative z-10 homa-value"><span id="workout-count">0</span><span class="text-xs text-slate-500 font-medium">/5 Dias</span></p>
-                    
+                    <div class="flex justify-between items-start relative z-10">
+                        <p class="text-xs text-slate-400 font-sans">Treino de Força</p>
+                        <button onclick="resetarSemana()"
+                            class="text-[9px] text-slate-500 hover:text-pink-500 underline">Zerar</button>
+                    </div>
+                    <p class="text-xl font-bold text-white relative z-10 homa-value"><span
+                            id="workout-count">0</span><span class="text-xs text-slate-500 font-medium">/5 Dias</span>
+                    </p>
                     <div class="w-full rounded-full h-1.5 mt-3 flex gap-1 relative z-10" id="workout-bars-container">
-                        <div class="flex-1 bg-slate-700 rounded-full h-1.5 workout-bar transition-colors duration-500"></div>
-                        <div class="flex-1 bg-slate-700 rounded-full h-1.5 workout-bar transition-colors duration-500"></div>
-                        <div class="flex-1 bg-slate-700 rounded-full h-1.5 workout-bar transition-colors duration-500"></div>
-                        <div class="flex-1 bg-slate-700 rounded-full h-1.5 workout-bar transition-colors duration-500"></div>
-                        <div class="flex-1 bg-slate-700 rounded-full h-1.5 workout-bar transition-colors duration-500"></div>
+                        <div class="flex-1 bg-slate-700 rounded-full h-1.5 workout-bar transition-colors duration-500">
+                        </div>
+                        <div class="flex-1 bg-slate-700 rounded-full h-1.5 workout-bar transition-colors duration-500">
+                        </div>
+                        <div class="flex-1 bg-slate-700 rounded-full h-1.5 workout-bar transition-colors duration-500">
+                        </div>
+                        <div class="flex-1 bg-slate-700 rounded-full h-1.5 workout-bar transition-colors duration-500">
+                        </div>
+                        <div class="flex-1 bg-slate-700 rounded-full h-1.5 workout-bar transition-colors duration-500">
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- SEÇÃO DE ROTINA (TIMELINE) -->
-            <h3 class="text-sm font-bold text-slate-300 mb-5 flex items-center gap-2 tracking-widest font-sans uppercase">
+            <h3
+                class="text-sm font-bold text-slate-300 mb-5 flex items-center gap-2 tracking-widest font-sans uppercase">
                 <i class="ph-fill ph-crosshair text-purple-500 text-lg"></i> Cronograma Diário
             </h3>
 
@@ -238,64 +288,77 @@
                 <!-- Refeição 1 -->
                 <div class="flex gap-4 relative z-10 mb-7">
                     <div class="bg-slate-900 rounded-md mt-0.5 z-10">
-                        <input type="checkbox" class="checkbox-cyber checkbox-refeicao" data-protein="28" onchange="updateProtein()">
+                        <input type="checkbox" class="checkbox-cyber checkbox-refeicao" data-protein="28"
+                            onchange="updateProtein()">
                     </div>
                     <div>
                         <h4 class="text-slate-200 font-semibold text-sm">06:30 - Pequeno-Almoço</h4>
                         <p class="text-slate-500 text-xs mt-1">3 Ovos, Queijo, Mamão, Chia</p>
-                        <span class="inline-block mt-2 bg-slate-800 text-purple-400 text-[10px] font-semibold px-2 py-1 rounded border border-purple-900/50">+28g Proteína</span>
+                        <span
+                            class="inline-block mt-2 bg-slate-800 text-purple-400 text-[10px] font-semibold px-2 py-1 rounded border border-purple-900/50">+28g
+                            Proteína</span>
                     </div>
                 </div>
                 <!-- Refeição 2 -->
                 <div class="flex gap-4 relative z-10 mb-7">
                     <div class="bg-slate-900 rounded-md mt-0.5 z-10">
-                        <input type="checkbox" class="checkbox-cyber checkbox-refeicao" data-protein="15" onchange="updateProtein()">
+                        <input type="checkbox" class="checkbox-cyber checkbox-refeicao" data-protein="15"
+                            onchange="updateProtein()">
                     </div>
                     <div>
                         <h4 class="text-slate-200 font-semibold text-sm">09:00 - Lanche da Manhã</h4>
                         <p class="text-slate-500 text-xs mt-1">Iogurte Proteico, Castanhas</p>
-                        <span class="inline-block mt-2 bg-slate-800 text-purple-400 text-[10px] font-semibold px-2 py-1 rounded border border-purple-900/50">+15g Proteína</span>
+                        <span
+                            class="inline-block mt-2 bg-slate-800 text-purple-400 text-[10px] font-semibold px-2 py-1 rounded border border-purple-900/50">+15g
+                            Proteína</span>
                     </div>
                 </div>
                 <!-- Refeição 3 -->
                 <div class="flex gap-4 relative z-10 mb-7">
                     <div class="bg-slate-900 rounded-md mt-0.5 z-10">
-                        <input type="checkbox" class="checkbox-cyber checkbox-refeicao" data-protein="54" onchange="updateProtein()">
+                        <input type="checkbox" class="checkbox-cyber checkbox-refeicao" data-protein="54"
+                            onchange="updateProtein()">
                     </div>
                     <div>
                         <h4 class="text-slate-200 font-semibold text-sm">11:00 - Almoço</h4>
                         <p class="text-slate-500 text-xs mt-1">180g Frango, Arroz Int, Brócolos</p>
-                        <span class="inline-block mt-2 bg-slate-800 text-purple-400 text-[10px] font-semibold px-2 py-1 rounded border border-purple-900/50">+54g Proteína</span>
+                        <span
+                            class="inline-block mt-2 bg-slate-800 text-purple-400 text-[10px] font-semibold px-2 py-1 rounded border border-purple-900/50">+54g
+                            Proteína</span>
                     </div>
                 </div>
                 <!-- Refeição 4 -->
                 <div class="flex gap-4 relative z-10 mb-7">
                     <div class="bg-slate-900 rounded-md mt-0.5 z-10">
-                        <input type="checkbox" class="checkbox-cyber checkbox-refeicao" data-protein="32" onchange="updateProtein()">
+                        <input type="checkbox" class="checkbox-cyber checkbox-refeicao" data-protein="32"
+                            onchange="updateProtein()">
                     </div>
                     <div>
                         <h4 class="text-slate-200 font-semibold text-sm">15:00 - Lanche (Whey)</h4>
                         <p class="text-slate-500 text-xs mt-1">Whey Protein (32g) + Pasta de Amendoim</p>
-                        <span class="inline-block mt-2 bg-slate-800 text-purple-400 text-[10px] font-semibold px-2 py-1 rounded border border-purple-900/50">+32g Proteína</span>
+                        <span
+                            class="inline-block mt-2 bg-slate-800 text-purple-400 text-[10px] font-semibold px-2 py-1 rounded border border-purple-900/50">+32g
+                            Proteína</span>
                     </div>
                 </div>
                 <!-- Refeição 5 -->
                 <div class="flex gap-4 relative z-10">
                     <div class="bg-slate-900 rounded-md mt-0.5 z-10">
-                        <input type="checkbox" class="checkbox-cyber checkbox-refeicao" data-protein="46" onchange="updateProtein()">
+                        <input type="checkbox" class="checkbox-cyber checkbox-refeicao" data-protein="46"
+                            onchange="updateProtein()">
                     </div>
                     <div>
                         <h4 class="text-slate-200 font-semibold text-sm">18:00 - Jantar</h4>
                         <p class="text-slate-500 text-xs mt-1">160g Peixe, Legumes (Início do Jejum)</p>
-                        <span class="inline-block mt-2 bg-slate-800 text-purple-400 text-[10px] font-semibold px-2 py-1 rounded border border-purple-900/50">+46g Proteína</span>
+                        <span
+                            class="inline-block mt-2 bg-slate-800 text-purple-400 text-[10px] font-semibold px-2 py-1 rounded border border-purple-900/50">+46g
+                            Proteína</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ==========================================
-             VIEW 2: TREINO DE FORÇA
-             ========================================== -->
+        <!-- VIEW 2: TREINO DE FORÇA -->
         <div id="view-workout" class="hidden pb-24 fade-in">
             <div class="flex items-center gap-3 mb-6">
                 <i class="ph-fill ph-barbell text-purple-500 text-3xl"></i>
@@ -305,72 +368,87 @@
                 </div>
             </div>
 
-            <!-- Seleção do Grupo Muscular (Pills) -->
             <div class="mb-8">
                 <h3 class="text-xs font-bold text-slate-500 mb-3 uppercase tracking-widest">Foco de Hoje</h3>
                 <div class="flex gap-2 overflow-x-auto hide-scroll pb-2">
-                    <button class="px-4 py-2 rounded-xl bg-purple-500/20 border border-purple-500 text-purple-400 text-sm font-semibold whitespace-nowrap shadow-[0_0_10px_rgba(168,85,247,0.3)]">Peito / Tríceps</button>
-                    <button class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 hover:text-slate-200 text-sm font-semibold whitespace-nowrap">Costas / Bíceps</button>
-                    <button class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 hover:text-slate-200 text-sm font-semibold whitespace-nowrap">Pernas (Inferiores)</button>
-                    <button class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 hover:text-slate-200 text-sm font-semibold whitespace-nowrap">Ombros / Abdómen</button>
+                    <button
+                        class="px-4 py-2 rounded-xl bg-purple-500/20 border border-purple-500 text-purple-400 text-sm font-semibold whitespace-nowrap shadow-[0_0_10px_rgba(168,85,247,0.3)]">Peito
+                        / Tríceps</button>
+                    <button
+                        class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 hover:text-slate-200 text-sm font-semibold whitespace-nowrap">Costas
+                        / Bíceps</button>
+                    <button
+                        class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 hover:text-slate-200 text-sm font-semibold whitespace-nowrap">Pernas
+                        (Inferiores)</button>
+                    <button
+                        class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 hover:text-slate-200 text-sm font-semibold whitespace-nowrap">Ombros
+                        / Abdómen</button>
                 </div>
             </div>
 
-            <!-- Check-in de Exercícios -->
             <div class="bg-slate-800/40 p-5 rounded-3xl border border-slate-800 mb-6">
                 <h3 class="text-sm font-bold text-slate-300 mb-4 flex items-center gap-2">
                     <i class="ph-bold ph-list-checks text-cyan-400"></i> Checklist do Treino
                 </h3>
-                
+
                 <div class="space-y-4">
-                    <label class="flex items-center gap-4 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors">
+                    <label
+                        class="flex items-center gap-4 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors">
                         <input type="checkbox" class="checkbox-cyber checkbox-treino">
                         <span class="text-slate-300 text-sm font-medium">Supino Reto (4x 10 a 12)</span>
                     </label>
-                    <label class="flex items-center gap-4 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors">
+                    <label
+                        class="flex items-center gap-4 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors">
                         <input type="checkbox" class="checkbox-cyber checkbox-treino">
                         <span class="text-slate-300 text-sm font-medium">Supino Inclinado c/ Halteres (4x 10)</span>
                     </label>
-                    <label class="flex items-center gap-4 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors">
+                    <label
+                        class="flex items-center gap-4 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors">
                         <input type="checkbox" class="checkbox-cyber checkbox-treino">
                         <span class="text-slate-300 text-sm font-medium">Crucifixo Máquina (3x 12)</span>
                     </label>
-                    <label class="flex items-center gap-4 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors">
+                    <label
+                        class="flex items-center gap-4 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors">
                         <input type="checkbox" class="checkbox-cyber checkbox-treino">
                         <span class="text-slate-300 text-sm font-medium">Tríceps Pulley (4x 12)</span>
                     </label>
-                    <label class="flex items-center gap-4 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors">
+                    <label
+                        class="flex items-center gap-4 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors">
                         <input type="checkbox" class="checkbox-cyber checkbox-treino">
                         <span class="text-slate-300 text-sm font-medium">Tríceps Corda (3x 15)</span>
                     </label>
                 </div>
             </div>
 
-            <!-- Botão Concluir -->
-            <button onclick="concluirTreino()" id="btn-concluir" class="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-cyan-600 text-white font-bold tracking-widest text-sm shadow-[0_10px_30px_rgba(168,85,247,0.4)] hover:shadow-[0_10px_40px_rgba(6,182,212,0.6)] transition-all">
+            <button onclick="concluirTreino()" id="btn-concluir"
+                class="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-cyan-600 text-white font-bold tracking-widest text-sm shadow-[0_10px_30px_rgba(168,85,247,0.4)] hover:shadow-[0_10px_40px_rgba(6,182,212,0.6)] transition-all">
                 CONCLUIR TREINO DE HOJE
             </button>
         </div>
 
-
-        <!-- ==========================================
-             BOTTOM NAVIGATION
-             ========================================== -->
-        <div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-[90%] floating-nav border border-slate-700 flex justify-around py-3 px-2 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-50">
-            <!-- Botão Home -->
-            <button onclick="switchTab('home')" class="nav-btn active text-slate-500 hover:text-cyan-400 transition-colors flex flex-col items-center relative" id="tab-home">
+        <!-- BOTTOM NAVIGATION -->
+        <div
+            class="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-[90%] floating-nav border border-slate-700 flex justify-around py-3 px-2 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-50">
+            <button onclick="switchTab('home')"
+                class="nav-btn active text-slate-500 hover:text-cyan-400 transition-colors flex flex-col items-center relative"
+                id="tab-home">
                 <i class="ph-fill ph-squares-four text-2xl"></i>
-                <span class="nav-indicator absolute -bottom-2 w-1 h-1 bg-cyan-400 rounded-full shadow-[0_0_5px_#06b6d4]"></span>
+                <span
+                    class="nav-indicator absolute -bottom-2 w-1 h-1 bg-cyan-400 rounded-full shadow-[0_0_5px_#06b6d4]"></span>
             </button>
-            <!-- Botão Treino -->
-            <button onclick="switchTab('workout')" class="nav-btn text-slate-500 hover:text-purple-400 transition-colors flex flex-col items-center relative" id="tab-workout">
+            <button onclick="switchTab('workout')"
+                class="nav-btn text-slate-500 hover:text-purple-400 transition-colors flex flex-col items-center relative"
+                id="tab-workout">
                 <i class="ph-bold ph-barbell text-2xl"></i>
-                <span class="nav-indicator absolute -bottom-2 w-1 h-1 bg-purple-400 rounded-full shadow-[0_0_5px_#a855f7]"></span>
+                <span
+                    class="nav-indicator absolute -bottom-2 w-1 h-1 bg-purple-400 rounded-full shadow-[0_0_5px_#a855f7]"></span>
             </button>
-            <button class="nav-btn text-slate-500 hover:text-pink-500 transition-colors flex flex-col items-center relative">
+            <button
+                class="nav-btn text-slate-500 hover:text-pink-500 transition-colors flex flex-col items-center relative">
                 <i class="ph-bold ph-chart-line-up text-2xl"></i>
             </button>
-            <button class="nav-btn text-slate-500 hover:text-emerald-500 transition-colors flex flex-col items-center relative">
+            <button
+                class="nav-btn text-slate-500 hover:text-emerald-500 transition-colors flex flex-col items-center relative">
                 <i class="ph-bold ph-user text-2xl"></i>
             </button>
         </div>
@@ -385,7 +463,7 @@
             const meta = 175;
 
             checkboxes.forEach(cb => {
-                if(cb.checked) {
+                if (cb.checked) {
                     totalProtein += parseInt(cb.getAttribute('data-protein'));
                 }
             });
@@ -393,78 +471,215 @@
             document.getElementById('protein-count').innerText = totalProtein;
 
             let percentage = (totalProtein / meta) * 100;
-            if(percentage > 100) percentage = 100;
+            if (percentage > 100) percentage = 100;
 
             const bar = document.getElementById('protein-bar');
             bar.style.width = percentage + '%';
-            
-            if(percentage >= 100) {
+
+            if (percentage >= 100) {
                 bar.classList.remove('bg-purple-500', 'shadow-[0_0_10px_rgba(168,85,247,0.5)]');
                 bar.classList.add('bg-cyan-400', 'shadow-[0_0_15px_rgba(6,182,212,0.8)]');
             } else {
                 bar.classList.add('bg-purple-500', 'shadow-[0_0_10px_rgba(168,85,247,0.5)]');
                 bar.classList.remove('bg-cyan-400', 'shadow-[0_0_15px_rgba(6,182,212,0.8)]');
             }
+
+            saveState();
         }
 
-        // Lógica de Navegação entre Telas
         function switchTab(tabName) {
-            // Oculta todas
             document.getElementById('view-home').classList.add('hidden');
             document.getElementById('view-workout').classList.add('hidden');
-            
-            // Remove classe active dos botões
+
             document.getElementById('tab-home').classList.remove('active', 'text-cyan-400');
             document.getElementById('tab-workout').classList.remove('active', 'text-purple-400');
 
-            // Mostra a selecionada
-            if(tabName === 'home') {
+            if (tabName === 'home') {
                 document.getElementById('view-home').classList.remove('hidden');
                 document.getElementById('tab-home').classList.add('active', 'text-cyan-400');
-            } else if(tabName === 'workout') {
+            } else if (tabName === 'workout') {
                 document.getElementById('view-workout').classList.remove('hidden');
                 document.getElementById('tab-workout').classList.add('active', 'text-purple-400');
             }
         }
 
-        // Lógica de Conclusão do Treino
         let diasTreinados = 0;
         function concluirTreino() {
-            // Verifica se tem pelo menos um exercício marcado
             const checksTreino = document.querySelectorAll('.checkbox-treino:checked');
-            if(checksTreino.length === 0) {
+            if (checksTreino.length === 0) {
                 alert("Guerreiro, marque pelo menos um exercício antes de concluir!");
                 return;
             }
 
-            if(diasTreinados < 5) {
+            if (diasTreinados < 5) {
                 diasTreinados++;
                 document.getElementById('workout-count').innerText = diasTreinados;
-                
-                // Pinta os quadradinhos do progresso na Home
+
                 const barrasProgresso = document.querySelectorAll('.workout-bar');
-                for(let i = 0; i < diasTreinados; i++) {
+                for (let i = 0; i < diasTreinados; i++) {
                     barrasProgresso[i].classList.remove('bg-slate-700');
                     barrasProgresso[i].classList.add('bg-cyan-400', 'shadow-[0_0_8px_rgba(6,182,212,0.8)]');
                 }
 
-                // Efeito visual no botão e retorno à Home
                 const btn = document.getElementById('btn-concluir');
                 btn.innerText = "TREINO REGISTADO!";
                 btn.classList.add('bg-emerald-500');
-                
+
                 setTimeout(() => {
-                    // Limpa os checkboxes para o próximo dia
                     document.querySelectorAll('.checkbox-treino').forEach(cb => cb.checked = false);
                     btn.innerText = "CONCLUIR TREINO DE HOJE";
                     btn.classList.remove('bg-emerald-500');
-                    
+
+                    saveState();
                     switchTab('home');
                 }, 1500);
             } else {
                 alert("Meta semanal batida! Você já treinou 5 dias.");
             }
         }
+
+        function getInitials(name) {
+            if (!name) return 'JS';
+            const words = name.trim().split(' ').filter(w => w.length > 0);
+            if (words.length === 0) return 'JS';
+            if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
+            return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+        }
+
+        function updateProfileAvatar(name, customImageBase64) {
+            const imgEl = document.getElementById('profile-img');
+            if (customImageBase64) {
+                imgEl.src = customImageBase64;
+            } else {
+                const initials = getInitials(name || "JOÃO SILVA");
+                imgEl.src = `https://placehold.co/100x100/06b6d4/000000?text=${initials}`;
+            }
+        }
+
+        function atualizarFotoPerfil(event) {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.size > 2500000) {
+                    alert("A imagem é grande. Escolha uma com menos de 2.5MB.");
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const base64Image = e.target.result;
+                    try {
+                        localStorage.setItem('metaHoma_profilePic', base64Image);
+                        const currentName = document.getElementById('user-name-display').innerText;
+                        updateProfileAvatar(currentName, base64Image);
+                    } catch (err) {
+                        alert("Erro ao guardar imagem. Pode ser muito pesada.");
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function saveState() {
+            try {
+                const mealChecks = Array.from(document.querySelectorAll('.checkbox-refeicao')).map(cb => cb.checked);
+                localStorage.setItem('metaHoma_meals', JSON.stringify(mealChecks));
+                localStorage.setItem('metaHoma_workouts', diasTreinados);
+                localStorage.setItem('metaHoma_lastDate', new Date().toLocaleDateString());
+            } catch (e) {
+                console.log("Aviso: Memória local cheia ou bloqueada.");
+            }
+        }
+
+        function loadState() {
+            try {
+                const today = new Date().toLocaleDateString();
+                const lastDate = localStorage.getItem('metaHoma_lastDate');
+
+                const savedName = localStorage.getItem('metaHoma_userName') || 'JOÃO SILVA';
+                document.getElementById('user-name-display').innerText = savedName;
+
+                const savedPic = localStorage.getItem('metaHoma_profilePic');
+                updateProfileAvatar(savedName, savedPic);
+
+                const savedHoma = localStorage.getItem('metaHoma_homaIR');
+                if (savedHoma) {
+                    document.getElementById('homa-ir-display').innerText = savedHoma;
+                }
+
+                if (lastDate !== today) {
+                    localStorage.removeItem('metaHoma_meals');
+                    localStorage.setItem('metaHoma_lastDate', today);
+                }
+
+                const mealsData = localStorage.getItem('metaHoma_meals');
+                if (mealsData) {
+                    const savedMeals = JSON.parse(mealsData);
+                    const checkboxes = document.querySelectorAll('.checkbox-refeicao');
+                    checkboxes.forEach((cb, index) => {
+                        cb.checked = savedMeals[index] || false;
+                    });
+                    updateProtein();
+                }
+
+                const savedWorkouts = localStorage.getItem('metaHoma_workouts');
+                if (savedWorkouts !== null) {
+                    diasTreinados = parseInt(savedWorkouts);
+                    document.getElementById('workout-count').innerText = diasTreinados;
+                    const barrasProgresso = document.querySelectorAll('.workout-bar');
+                    for (let i = 0; i < diasTreinados; i++) {
+                        barrasProgresso[i].classList.remove('bg-slate-700');
+                        barrasProgresso[i].classList.add('bg-cyan-400', 'shadow-[0_0_8px_rgba(6,182,212,0.8)]');
+                    }
+                }
+            } catch (e) {
+                console.error("Erro ao iniciar a App:", e);
+            }
+        }
+
+        function resetarSemana() {
+            if (confirm("Deseja zerar os seus dias de treino para iniciar uma nova semana?")) {
+                diasTreinados = 0;
+                document.getElementById('workout-count').innerText = diasTreinados;
+                const barrasProgresso = document.querySelectorAll('.workout-bar');
+                barrasProgresso.forEach(bar => {
+                    bar.classList.remove('bg-cyan-400', 'shadow-[0_0_8px_rgba(6,182,212,0.8)]');
+                    bar.classList.add('bg-slate-700');
+                });
+                saveState();
+            }
+        }
+
+        function editarHomaIR() {
+            const valorAtual = document.getElementById('homa-ir-display').innerText;
+            let novoValor = prompt("Qual é o seu novo resultado do HOMA-IR?", valorAtual);
+
+            if (novoValor !== null && novoValor.trim() !== "") {
+                novoValor = novoValor.replace(',', '.');
+                if (!isNaN(novoValor)) {
+                    const valorFormatado = parseFloat(novoValor).toFixed(2);
+                    document.getElementById('homa-ir-display').innerText = valorFormatado;
+                    localStorage.setItem('metaHoma_homaIR', valorFormatado);
+                } else {
+                    alert("Digite apenas números.");
+                }
+            }
+        }
+
+        function editarNome() {
+            const nomeAtual = document.getElementById('user-name-display').innerText;
+            let novoNome = prompt("Como você gostaria de ser chamado?", nomeAtual);
+
+            if (novoNome !== null && novoNome.trim() !== "") {
+                const nomeFormatado = novoNome.trim().toUpperCase();
+                document.getElementById('user-name-display').innerText = nomeFormatado;
+                localStorage.setItem('metaHoma_userName', nomeFormatado);
+
+                const savedPic = localStorage.getItem('metaHoma_profilePic');
+                updateProfileAvatar(nomeFormatado, savedPic);
+            }
+        }
+
+        window.onload = loadState;
     </script>
 </body>
+
 </html>
