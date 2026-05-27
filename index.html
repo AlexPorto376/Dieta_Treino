@@ -12,10 +12,14 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <style>
+        /* CORREÇÃO DEFINITIVA DE LAYOUT PARA iOS/BRAVE */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #020617;
             color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            /* Flexbox removido do mobile para evitar estiramento automático */
         }
 
         h1,
@@ -24,21 +28,50 @@
             font-family: 'Orbitron', sans-serif;
         }
 
-        ::-webkit-scrollbar {
-            width: 0px;
-            background: transparent;
+        /* Container Principal do App - Bloqueado no tamanho do ecrã */
+        .app-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            height: 100vh;
+            /* Fallback para browsers antigos */
+            height: 100dvh;
+            /* Altura dinâmica exata do ecrã do telemóvel */
+            background-color: #0f172a;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            /* Corta qualquer coisa que tente esticar a caixa principal */
         }
 
-        .app-container {
-            max-width: 400px;
-            margin: 2rem auto;
-            background-color: #0f172a;
-            height: 850px;
-            border-radius: 40px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 10px #1e293b;
+        /* Moldura de Telemóvel apenas para o Computador/Tablet */
+        @media (min-width: 600px) {
+            body {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+            }
+
+            .app-container {
+                height: 850px;
+                max-height: 90vh;
+                border-radius: 40px;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 10px #1e293b;
+            }
+        }
+
+        /* A div interna: a única coisa que rola! */
+        .app-content {
+            flex: 1;
+            /* Força a ocupar apenas o espaço restante */
+            min-height: 0;
+            /* CRÍTICO: Impede que a lista de refeições estique a caixa mãe */
             overflow-y: auto;
+            /* Permite rolar apenas aqui dentro */
             overflow-x: hidden;
-            position: relative;
+            padding: 1.5rem;
         }
 
         .card-neon {
@@ -165,270 +198,271 @@
     </style>
 </head>
 
-<body class="flex items-center justify-center min-h-screen">
+<body>
 
-    <div class="app-container p-6 relative">
+    <div class="app-container">
 
-        <!-- HEADER GLOBAL -->
-        <header class="flex justify-between items-center mb-6 mt-2">
-            <div>
-                <p class="text-slate-400 text-sm font-medium">Bom dia,</p>
-                <!-- Nome clicável protegido com ID -->
-                <h1 id="user-name-display" onclick="editarNome()"
-                    class="text-xl font-bold text-cyan-400 tracking-wider cursor-pointer hover:text-cyan-200 transition-colors"
-                    title="Clique para alterar seu nome">JOÃO SILVA</h1>
-            </div>
+        <div class="app-content hide-scroll pb-32">
 
-            <!-- FOTO DE PERFIL / INICIAIS: Corrigido com tag Label para nunca ser bloqueado -->
-            <label
-                class="relative w-14 h-14 rounded-full border-2 border-cyan-500 p-0.5 shadow-[0_0_15px_rgba(6,182,212,0.3)] cursor-pointer group"
-                title="Clique para alterar a foto">
-                <img id="profile-img" src="https://placehold.co/100x100/06b6d4/000000?text=JS" alt="Perfil"
-                    class="w-full h-full rounded-full object-cover">
-                <div
-                    class="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity m-0.5">
-                    <i class="ph-bold ph-camera text-white text-xl"></i>
-                </div>
-                <input type="file" id="profile-upload" accept="image/*" class="hidden"
-                    onchange="atualizarFotoPerfil(event)">
-            </label>
-        </header>
-
-        <!-- VIEW 1: HOME (DIETA E HOMA-IR) -->
-        <div id="view-home" class="block pb-24 fade-in">
-            <!-- CARD 1: HOMA-IR -->
-            <div class="card-neon p-6">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h2 class="text-slate-200 font-bold flex items-center gap-2 text-lg tracking-widest">
-                            <i class="ph-fill ph-activity text-cyan-400 text-xl"></i>
-                            HOMA-IR
-                        </h2>
-                        <p class="text-xs text-slate-400 mt-1 font-sans">Sensibilidade à Insulina</p>
-                    </div>
-                    <div
-                        class="bg-slate-800 px-3 py-1 rounded-full text-xs font-bold text-cyan-400 border border-cyan-900 shadow-sm">
-                        META: 2.0
-                    </div>
-                </div>
-
-                <div class="flex items-end gap-3 mt-4">
-                    <span id="homa-ir-display" onclick="editarHomaIR()"
-                        class="text-6xl font-bold text-white tracking-tighter homa-value cursor-pointer hover:text-cyan-200 transition-colors"
-                        title="Clique para atualizar seu HOMA-IR">10.89</span>
-                    <div
-                        class="flex items-center text-emerald-400 text-sm mb-2 font-medium bg-emerald-950/50 px-2 py-1 rounded-lg border border-emerald-900">
-                        <i class="ph-bold ph-trend-down mr-1"></i>
-                        A baixar
-                    </div>
-                </div>
-
-                <div class="w-full bg-slate-800 rounded-full h-2 mt-6 overflow-hidden flex shadow-inner relative">
-                    <div class="bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 w-full h-full opacity-80">
-                    </div>
-                    <div class="absolute w-3 h-3 bg-white rounded-full mt-[-2px] shadow-[0_0_10px_white]"
-                        style="left: 80%;"></div>
-                </div>
-                <div class="flex justify-between text-[10px] text-slate-400 mt-2 font-medium tracking-wider font-sans">
-                    <span class="text-cyan-400">IDEAL (2.0)</span>
-                    <span>ALERTA (>3.0)</span>
-                    <span class="text-pink-500">ATUAL (10.89)</span>
-                </div>
-            </div>
-
-            <!-- GRID SECUNDÁRIO: Macros e Treino -->
-            <div class="grid grid-cols-2 gap-4 mb-8">
-                <div class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700 relative overflow-hidden group">
-                    <div class="absolute -right-4 -top-4 w-16 h-16 bg-purple-900/20 rounded-full z-0 blur-xl"></div>
-                    <i class="ph-fill ph-lightning text-purple-400 text-3xl mb-2 relative z-10"></i>
-                    <p class="text-xs text-slate-400 relative z-10 font-sans">Proteína Diária</p>
-                    <p class="text-xl font-bold text-white relative z-10 homa-value"><span
-                            id="protein-count">0</span><span class="text-xs text-slate-500 font-medium">/175g</span></p>
-                    <div class="w-full bg-slate-700 rounded-full h-1.5 mt-3 relative z-10">
-                        <div id="protein-bar"
-                            class="bg-purple-500 h-1.5 rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]"
-                            style="width: 0%"></div>
-                    </div>
-                </div>
-
-                <div class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700 relative overflow-hidden group">
-                    <div class="absolute -right-4 -top-4 w-16 h-16 bg-cyan-900/20 rounded-full z-0 blur-xl"></div>
-                    <i class="ph-fill ph-barbell text-cyan-400 text-3xl mb-2 relative z-10"></i>
-                    <div class="flex justify-between items-start relative z-10">
-                        <p class="text-xs text-slate-400 font-sans">Treino de Força</p>
-                        <button onclick="resetarSemana()"
-                            class="text-[9px] text-slate-500 hover:text-pink-500 underline">Zerar</button>
-                    </div>
-                    <p class="text-xl font-bold text-white relative z-10 homa-value"><span
-                            id="workout-count">0</span><span class="text-xs text-slate-500 font-medium">/5 Dias</span>
-                    </p>
-                    <div class="w-full rounded-full h-1.5 mt-3 flex gap-1 relative z-10" id="workout-bars-container">
-                        <div class="flex-1 bg-slate-700 rounded-full h-1.5 workout-bar transition-colors duration-500">
-                        </div>
-                        <div class="flex-1 bg-slate-700 rounded-full h-1.5 workout-bar transition-colors duration-500">
-                        </div>
-                        <div class="flex-1 bg-slate-700 rounded-full h-1.5 workout-bar transition-colors duration-500">
-                        </div>
-                        <div class="flex-1 bg-slate-700 rounded-full h-1.5 workout-bar transition-colors duration-500">
-                        </div>
-                        <div class="flex-1 bg-slate-700 rounded-full h-1.5 workout-bar transition-colors duration-500">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SEÇÃO DE ROTINA (TIMELINE) -->
-            <h3
-                class="text-sm font-bold text-slate-300 mb-5 flex items-center gap-2 tracking-widest font-sans uppercase">
-                <i class="ph-fill ph-crosshair text-purple-500 text-lg"></i> Cronograma Diário
-            </h3>
-
-            <div class="relative bg-slate-800/30 p-6 rounded-3xl border border-slate-800">
-                <div class="timeline-line"></div>
-                <!-- Refeição 1 -->
-                <div class="flex gap-4 relative z-10 mb-7">
-                    <div class="bg-slate-900 rounded-md mt-0.5 z-10">
-                        <input type="checkbox" class="checkbox-cyber checkbox-refeicao" data-protein="28"
-                            onchange="updateProtein()">
-                    </div>
-                    <div>
-                        <h4 class="text-slate-200 font-semibold text-sm">06:30 - Pequeno-Almoço</h4>
-                        <p class="text-slate-500 text-xs mt-1">3 Ovos, Queijo, Mamão, Chia</p>
-                        <span
-                            class="inline-block mt-2 bg-slate-800 text-purple-400 text-[10px] font-semibold px-2 py-1 rounded border border-purple-900/50">+28g
-                            Proteína</span>
-                    </div>
-                </div>
-                <!-- Refeição 2 -->
-                <div class="flex gap-4 relative z-10 mb-7">
-                    <div class="bg-slate-900 rounded-md mt-0.5 z-10">
-                        <input type="checkbox" class="checkbox-cyber checkbox-refeicao" data-protein="15"
-                            onchange="updateProtein()">
-                    </div>
-                    <div>
-                        <h4 class="text-slate-200 font-semibold text-sm">09:00 - Lanche da Manhã</h4>
-                        <p class="text-slate-500 text-xs mt-1">Iogurte Proteico, Castanhas</p>
-                        <span
-                            class="inline-block mt-2 bg-slate-800 text-purple-400 text-[10px] font-semibold px-2 py-1 rounded border border-purple-900/50">+15g
-                            Proteína</span>
-                    </div>
-                </div>
-                <!-- Refeição 3 -->
-                <div class="flex gap-4 relative z-10 mb-7">
-                    <div class="bg-slate-900 rounded-md mt-0.5 z-10">
-                        <input type="checkbox" class="checkbox-cyber checkbox-refeicao" data-protein="54"
-                            onchange="updateProtein()">
-                    </div>
-                    <div>
-                        <h4 class="text-slate-200 font-semibold text-sm">11:00 - Almoço</h4>
-                        <p class="text-slate-500 text-xs mt-1">180g Frango, Arroz Int, Brócolos</p>
-                        <span
-                            class="inline-block mt-2 bg-slate-800 text-purple-400 text-[10px] font-semibold px-2 py-1 rounded border border-purple-900/50">+54g
-                            Proteína</span>
-                    </div>
-                </div>
-                <!-- Refeição 4 -->
-                <div class="flex gap-4 relative z-10 mb-7">
-                    <div class="bg-slate-900 rounded-md mt-0.5 z-10">
-                        <input type="checkbox" class="checkbox-cyber checkbox-refeicao" data-protein="32"
-                            onchange="updateProtein()">
-                    </div>
-                    <div>
-                        <h4 class="text-slate-200 font-semibold text-sm">15:00 - Lanche (Whey)</h4>
-                        <p class="text-slate-500 text-xs mt-1">Whey Protein (32g) + Pasta de Amendoim</p>
-                        <span
-                            class="inline-block mt-2 bg-slate-800 text-purple-400 text-[10px] font-semibold px-2 py-1 rounded border border-purple-900/50">+32g
-                            Proteína</span>
-                    </div>
-                </div>
-                <!-- Refeição 5 -->
-                <div class="flex gap-4 relative z-10">
-                    <div class="bg-slate-900 rounded-md mt-0.5 z-10">
-                        <input type="checkbox" class="checkbox-cyber checkbox-refeicao" data-protein="46"
-                            onchange="updateProtein()">
-                    </div>
-                    <div>
-                        <h4 class="text-slate-200 font-semibold text-sm">18:00 - Jantar</h4>
-                        <p class="text-slate-500 text-xs mt-1">160g Peixe, Legumes (Início do Jejum)</p>
-                        <span
-                            class="inline-block mt-2 bg-slate-800 text-purple-400 text-[10px] font-semibold px-2 py-1 rounded border border-purple-900/50">+46g
-                            Proteína</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- VIEW 2: TREINO DE FORÇA -->
-        <div id="view-workout" class="hidden pb-24 fade-in">
-            <div class="flex items-center gap-3 mb-6">
-                <i class="ph-fill ph-barbell text-purple-500 text-3xl"></i>
+            <header class="flex justify-between items-center mb-6 mt-2">
                 <div>
-                    <h2 class="text-xl font-bold text-slate-200 tracking-wider">MODO TREINO</h2>
-                    <p class="text-xs text-slate-400">Ativando transportadores GLUT4</p>
+                    <p class="text-slate-400 text-sm font-medium">Bom dia,</p>
+                    <h1 id="user-name-display" onclick="editarNome()"
+                        class="text-xl font-bold text-cyan-400 tracking-wider cursor-pointer hover:text-cyan-200 transition-colors"
+                        title="Clique para alterar seu nome">JOÃO SILVA</h1>
                 </div>
-            </div>
 
-            <div class="mb-8">
-                <h3 class="text-xs font-bold text-slate-500 mb-3 uppercase tracking-widest">Foco de Hoje</h3>
-                <div class="flex gap-2 overflow-x-auto hide-scroll pb-2">
-                    <button
-                        class="px-4 py-2 rounded-xl bg-purple-500/20 border border-purple-500 text-purple-400 text-sm font-semibold whitespace-nowrap shadow-[0_0_10px_rgba(168,85,247,0.3)]">Peito
-                        / Tríceps</button>
-                    <button
-                        class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 hover:text-slate-200 text-sm font-semibold whitespace-nowrap">Costas
-                        / Bíceps</button>
-                    <button
-                        class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 hover:text-slate-200 text-sm font-semibold whitespace-nowrap">Pernas
-                        (Inferiores)</button>
-                    <button
-                        class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 hover:text-slate-200 text-sm font-semibold whitespace-nowrap">Ombros
-                        / Abdómen</button>
+                <label
+                    class="relative w-14 h-14 rounded-full border-2 border-cyan-500 p-0.5 shadow-[0_0_15px_rgba(6,182,212,0.3)] cursor-pointer group"
+                    title="Clique para alterar a foto">
+                    <img id="profile-img" src="https://placehold.co/100x100/06b6d4/000000?text=JS" alt="Perfil"
+                        class="w-full h-full rounded-full object-cover">
+                    <div
+                        class="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity m-0.5">
+                        <i class="ph-bold ph-camera text-white text-xl"></i>
+                    </div>
+                    <input type="file" id="profile-upload" accept="image/*" class="hidden"
+                        onchange="atualizarFotoPerfil(event)">
+                </label>
+            </header>
+
+            <div id="view-home" class="block fade-in">
+                <div class="card-neon p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h2 class="text-slate-200 font-bold flex items-center gap-2 text-lg tracking-widest">
+                                <i class="ph-fill ph-activity text-cyan-400 text-xl"></i>
+                                HOMA-IR
+                            </h2>
+                            <p class="text-xs text-slate-400 mt-1 font-sans">Sensibilidade à Insulina</p>
+                        </div>
+                        <div
+                            class="bg-slate-800 px-3 py-1 rounded-full text-xs font-bold text-cyan-400 border border-cyan-900 shadow-sm">
+                            META: 2.0
+                        </div>
+                    </div>
+
+                    <div class="flex items-end gap-3 mt-4">
+                        <span id="homa-ir-display" onclick="editarHomaIR()"
+                            class="text-6xl font-bold text-white tracking-tighter homa-value cursor-pointer hover:text-cyan-200 transition-colors"
+                            title="Clique para atualizar seu HOMA-IR">10.89</span>
+                        <div
+                            class="flex items-center text-emerald-400 text-sm mb-2 font-medium bg-emerald-950/50 px-2 py-1 rounded-lg border border-emerald-900">
+                            <i class="ph-bold ph-trend-down mr-1"></i>
+                            A baixar
+                        </div>
+                    </div>
+
+                    <div class="w-full bg-slate-800 rounded-full h-2 mt-6 overflow-hidden flex shadow-inner relative">
+                        <div class="bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 w-full h-full opacity-80">
+                        </div>
+                        <div class="absolute w-3 h-3 bg-white rounded-full mt-[-2px] shadow-[0_0_10px_white]"
+                            style="left: 80%;"></div>
+                    </div>
+                    <div
+                        class="flex justify-between text-[10px] text-slate-400 mt-2 font-medium tracking-wider font-sans">
+                        <span class="text-cyan-400">IDEAL (2.0)</span>
+                        <span>ALERTA (>3.0)</span>
+                        <span class="text-pink-500">ATUAL (10.89)</span>
+                    </div>
                 </div>
-            </div>
 
-            <div class="bg-slate-800/40 p-5 rounded-3xl border border-slate-800 mb-6">
-                <h3 class="text-sm font-bold text-slate-300 mb-4 flex items-center gap-2">
-                    <i class="ph-bold ph-list-checks text-cyan-400"></i> Checklist do Treino
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700 relative overflow-hidden group">
+                        <div class="absolute -right-4 -top-4 w-16 h-16 bg-purple-900/20 rounded-full z-0 blur-xl"></div>
+                        <i class="ph-fill ph-lightning text-purple-400 text-3xl mb-2 relative z-10"></i>
+                        <p class="text-xs text-slate-400 relative z-10 font-sans">Proteína Diária</p>
+                        <p class="text-xl font-bold text-white relative z-10 homa-value"><span
+                                id="protein-count">0</span><span class="text-xs text-slate-500 font-medium">/175g</span>
+                        </p>
+                        <div class="w-full bg-slate-700 rounded-full h-1.5 mt-3 relative z-10">
+                            <div id="protein-bar"
+                                class="bg-purple-500 h-1.5 rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]"
+                                style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700 relative overflow-hidden group">
+                        <div class="absolute -right-4 -top-4 w-16 h-16 bg-cyan-900/20 rounded-full z-0 blur-xl"></div>
+                        <i class="ph-fill ph-barbell text-cyan-400 text-3xl mb-2 relative z-10"></i>
+                        <div class="flex justify-between items-start relative z-10">
+                            <p class="text-xs text-slate-400 font-sans">Treino de Força</p>
+                            <button onclick="resetarSemana()"
+                                class="text-[9px] text-slate-500 hover:text-pink-500 underline">Zerar</button>
+                        </div>
+                        <p class="text-xl font-bold text-white relative z-10 homa-value"><span
+                                id="workout-count">0</span><span class="text-xs text-slate-500 font-medium">/5
+                                Dias</span></p>
+                        <div class="w-full rounded-full h-1.5 mt-3 flex gap-1 relative z-10"
+                            id="workout-bars-container">
+                            <div
+                                class="flex-1 bg-slate-700 rounded-full h-1.5 workout-bar transition-colors duration-500">
+                            </div>
+                            <div
+                                class="flex-1 bg-slate-700 rounded-full h-1.5 workout-bar transition-colors duration-500">
+                            </div>
+                            <div
+                                class="flex-1 bg-slate-700 rounded-full h-1.5 workout-bar transition-colors duration-500">
+                            </div>
+                            <div
+                                class="flex-1 bg-slate-700 rounded-full h-1.5 workout-bar transition-colors duration-500">
+                            </div>
+                            <div
+                                class="flex-1 bg-slate-700 rounded-full h-1.5 workout-bar transition-colors duration-500">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3
+                    class="text-sm font-bold text-slate-300 mb-5 flex items-center gap-2 tracking-widest font-sans uppercase">
+                    <i class="ph-fill ph-crosshair text-purple-500 text-lg"></i> Cronograma Diário
                 </h3>
 
-                <div class="space-y-4">
-                    <label
-                        class="flex items-center gap-4 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors">
-                        <input type="checkbox" class="checkbox-cyber checkbox-treino">
-                        <span class="text-slate-300 text-sm font-medium">Supino Reto (4x 10 a 12)</span>
-                    </label>
-                    <label
-                        class="flex items-center gap-4 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors">
-                        <input type="checkbox" class="checkbox-cyber checkbox-treino">
-                        <span class="text-slate-300 text-sm font-medium">Supino Inclinado c/ Halteres (4x 10)</span>
-                    </label>
-                    <label
-                        class="flex items-center gap-4 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors">
-                        <input type="checkbox" class="checkbox-cyber checkbox-treino">
-                        <span class="text-slate-300 text-sm font-medium">Crucifixo Máquina (3x 12)</span>
-                    </label>
-                    <label
-                        class="flex items-center gap-4 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors">
-                        <input type="checkbox" class="checkbox-cyber checkbox-treino">
-                        <span class="text-slate-300 text-sm font-medium">Tríceps Pulley (4x 12)</span>
-                    </label>
-                    <label
-                        class="flex items-center gap-4 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors">
-                        <input type="checkbox" class="checkbox-cyber checkbox-treino">
-                        <span class="text-slate-300 text-sm font-medium">Tríceps Corda (3x 15)</span>
-                    </label>
+                <div class="relative bg-slate-800/30 p-6 rounded-3xl border border-slate-800">
+                    <div class="timeline-line"></div>
+                    <div class="flex gap-4 relative z-10 mb-7">
+                        <div class="bg-slate-900 rounded-md mt-0.5 z-10">
+                            <input type="checkbox" class="checkbox-cyber checkbox-refeicao" data-protein="28"
+                                onchange="updateProtein()">
+                        </div>
+                        <div>
+                            <h4 class="text-slate-200 font-semibold text-sm">06:30 - Pequeno-Almoço</h4>
+                            <p class="text-slate-500 text-xs mt-1">3 Ovos, Queijo, Mamão, Chia</p>
+                            <span
+                                class="inline-block mt-2 bg-slate-800 text-purple-400 text-[10px] font-semibold px-2 py-1 rounded border border-purple-900/50">+28g
+                                Proteína</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 relative z-10 mb-7">
+                        <div class="bg-slate-900 rounded-md mt-0.5 z-10">
+                            <input type="checkbox" class="checkbox-cyber checkbox-refeicao" data-protein="15"
+                                onchange="updateProtein()">
+                        </div>
+                        <div>
+                            <h4 class="text-slate-200 font-semibold text-sm">09:00 - Lanche da Manhã</h4>
+                            <p class="text-slate-500 text-xs mt-1">Iogurte Proteico, Castanhas</p>
+                            <span
+                                class="inline-block mt-2 bg-slate-800 text-purple-400 text-[10px] font-semibold px-2 py-1 rounded border border-purple-900/50">+15g
+                                Proteína</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 relative z-10 mb-7">
+                        <div class="bg-slate-900 rounded-md mt-0.5 z-10">
+                            <input type="checkbox" class="checkbox-cyber checkbox-refeicao" data-protein="54"
+                                onchange="updateProtein()">
+                        </div>
+                        <div>
+                            <h4 class="text-slate-200 font-semibold text-sm">11:00 - Almoço</h4>
+                            <p class="text-slate-500 text-xs mt-1">180g Frango, Arroz Int, Brócolos</p>
+                            <span
+                                class="inline-block mt-2 bg-slate-800 text-purple-400 text-[10px] font-semibold px-2 py-1 rounded border border-purple-900/50">+54g
+                                Proteína</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 relative z-10 mb-7">
+                        <div class="bg-slate-900 rounded-md mt-0.5 z-10">
+                            <input type="checkbox" class="checkbox-cyber checkbox-refeicao" data-protein="32"
+                                onchange="updateProtein()">
+                        </div>
+                        <div>
+                            <h4 class="text-slate-200 font-semibold text-sm">15:00 - Lanche (Whey)</h4>
+                            <p class="text-slate-500 text-xs mt-1">Whey Protein (32g) + Pasta de Amendoim</p>
+                            <span
+                                class="inline-block mt-2 bg-slate-800 text-purple-400 text-[10px] font-semibold px-2 py-1 rounded border border-purple-900/50">+32g
+                                Proteína</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 relative z-10">
+                        <div class="bg-slate-900 rounded-md mt-0.5 z-10">
+                            <input type="checkbox" class="checkbox-cyber checkbox-refeicao" data-protein="46"
+                                onchange="updateProtein()">
+                        </div>
+                        <div>
+                            <h4 class="text-slate-200 font-semibold text-sm">18:00 - Jantar</h4>
+                            <p class="text-slate-500 text-xs mt-1">160g Peixe, Legumes (Início do Jejum)</p>
+                            <span
+                                class="inline-block mt-2 bg-slate-800 text-purple-400 text-[10px] font-semibold px-2 py-1 rounded border border-purple-900/50">+46g
+                                Proteína</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <button onclick="concluirTreino()" id="btn-concluir"
-                class="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-cyan-600 text-white font-bold tracking-widest text-sm shadow-[0_10px_30px_rgba(168,85,247,0.4)] hover:shadow-[0_10px_40px_rgba(6,182,212,0.6)] transition-all">
-                CONCLUIR TREINO DE HOJE
-            </button>
+            <div id="view-workout" class="hidden fade-in">
+                <div class="flex items-center gap-3 mb-6">
+                    <i class="ph-fill ph-barbell text-purple-500 text-3xl"></i>
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-200 tracking-wider">MODO TREINO</h2>
+                        <p class="text-xs text-slate-400">Ativando transportadores GLUT4</p>
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <h3 class="text-xs font-bold text-slate-500 mb-3 uppercase tracking-widest">Foco de Hoje</h3>
+                    <div class="flex gap-2 overflow-x-auto hide-scroll pb-2">
+                        <button onclick="mudarTreino('peito', this)"
+                            class="btn-treino-tab px-4 py-2 rounded-xl bg-purple-500/20 border border-purple-500 text-purple-400 text-sm font-semibold whitespace-nowrap shadow-[0_0_10px_rgba(168,85,247,0.3)]">Peito
+                            / Tríceps</button>
+                        <button onclick="mudarTreino('costas', this)"
+                            class="btn-treino-tab px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 hover:text-slate-200 text-sm font-semibold whitespace-nowrap">Costas
+                            / Bíceps</button>
+                        <button onclick="mudarTreino('pernas', this)"
+                            class="btn-treino-tab px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 hover:text-slate-200 text-sm font-semibold whitespace-nowrap">Pernas
+                            (Inferiores)</button>
+                        <button onclick="mudarTreino('ombros', this)"
+                            class="btn-treino-tab px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 hover:text-slate-200 text-sm font-semibold whitespace-nowrap">Ombros
+                            / Abdómen</button>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/40 p-5 rounded-3xl border border-slate-800 mb-6">
+                    <h3 class="text-sm font-bold text-slate-300 mb-4 flex items-center gap-2">
+                        <i class="ph-bold ph-list-checks text-cyan-400"></i> Checklist do Treino
+                    </h3>
+
+                    <div class="space-y-4" id="lista-exercicios">
+                        <label
+                            class="flex items-center gap-4 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors">
+                            <input type="checkbox" class="checkbox-cyber checkbox-treino">
+                            <span class="text-slate-300 text-sm font-medium">Supino Reto (4x 10 a 12)</span>
+                        </label>
+                        <label
+                            class="flex items-center gap-4 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors">
+                            <input type="checkbox" class="checkbox-cyber checkbox-treino">
+                            <span class="text-slate-300 text-sm font-medium">Supino Inclinado c/ Halteres (4x 10)</span>
+                        </label>
+                        <label
+                            class="flex items-center gap-4 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors">
+                            <input type="checkbox" class="checkbox-cyber checkbox-treino">
+                            <span class="text-slate-300 text-sm font-medium">Crucifixo Máquina (3x 12)</span>
+                        </label>
+                        <label
+                            class="flex items-center gap-4 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors">
+                            <input type="checkbox" class="checkbox-cyber checkbox-treino">
+                            <span class="text-slate-300 text-sm font-medium">Tríceps Pulley (4x 12)</span>
+                        </label>
+                        <label
+                            class="flex items-center gap-4 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors">
+                            <input type="checkbox" class="checkbox-cyber checkbox-treino">
+                            <span class="text-slate-300 text-sm font-medium">Tríceps Corda (3x 15)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <button onclick="concluirTreino()" id="btn-concluir"
+                    class="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-cyan-600 text-white font-bold tracking-widest text-sm shadow-[0_10px_30px_rgba(168,85,247,0.4)] hover:shadow-[0_10px_40px_rgba(6,182,212,0.6)] transition-all">
+                    CONCLUIR TREINO DE HOJE
+                </button>
+            </div>
+
+            <div style="height: 100px;" class="w-full"></div>
+
         </div>
 
-        <!-- BOTTOM NAVIGATION -->
+        <!-- A BARRA DE NAVEGAÇÃO FIXA DENTRO DO CONTAINER BLOQUEADO -->
         <div
-            class="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-[90%] floating-nav border border-slate-700 flex justify-around py-3 px-2 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-50">
+            class="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-[90%] floating-nav border border-slate-700 flex justify-around py-3 px-2 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] z-50 pointer-events-auto">
             <button onclick="switchTab('home')"
                 class="nav-btn active text-slate-500 hover:text-cyan-400 transition-colors flex flex-col items-center relative"
                 id="tab-home">
@@ -456,7 +490,60 @@
     </div>
 
     <script>
-        // Lógica de Proteína
+        const treinosData = {
+            'peito': [
+                'Supino Reto (4x 10 a 12)',
+                'Supino Inclinado c/ Halteres (4x 10)',
+                'Crucifixo Máquina (3x 12)',
+                'Tríceps Pulley (4x 12)',
+                'Tríceps Corda (3x 15)'
+            ],
+            'costas': [
+                'Puxada Frontal (4x 10 a 12)',
+                'Remada Curvada (4x 10)',
+                'Remada Baixa (3x 12)',
+                'Rosca Direta (4x 12)',
+                'Rosca Martelo (3x 15)'
+            ],
+            'pernas': [
+                'Agachamento Livre (4x 10 a 12)',
+                'Leg Press 45º (4x 10)',
+                'Cadeira Extensora (3x 12)',
+                'Mesa Flexora (4x 12)',
+                'Panturrilha em Pé (4x 15)'
+            ],
+            'ombros': [
+                'Desenvolvimento c/ Halteres (4x 10 a 12)',
+                'Elevação Lateral (4x 12)',
+                'Crucifixo Inverso (3x 12)',
+                'Abdominal Supra (4x 20)',
+                'Prancha Isométrica (3x 1 min)'
+            ]
+        };
+
+        function mudarTreino(tipo, btnSelecionado) {
+            const botoes = document.querySelectorAll('.btn-treino-tab');
+            botoes.forEach(btn => {
+                btn.className = "btn-treino-tab px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 hover:text-slate-200 text-sm font-semibold whitespace-nowrap";
+            });
+
+            btnSelecionado.className = "btn-treino-tab px-4 py-2 rounded-xl bg-purple-500/20 border border-purple-500 text-purple-400 text-sm font-semibold whitespace-nowrap shadow-[0_0_10px_rgba(168,85,247,0.3)]";
+
+            const lista = document.getElementById('lista-exercicios');
+            lista.innerHTML = '';
+
+            const novosExercicios = treinosData[tipo];
+            novosExercicios.forEach(exercicio => {
+                const label = document.createElement('label');
+                label.className = "flex items-center gap-4 p-3 rounded-xl bg-slate-900/50 border border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors";
+                label.innerHTML = `
+                    <input type="checkbox" class="checkbox-cyber checkbox-treino">
+                    <span class="text-slate-300 text-sm font-medium">${exercicio}</span>
+                `;
+                lista.appendChild(label);
+            });
+        }
+
         function updateProtein() {
             const checkboxes = document.querySelectorAll('.checkbox-refeicao');
             let totalProtein = 0;
