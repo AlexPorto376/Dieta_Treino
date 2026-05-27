@@ -12,40 +12,34 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <style>
-        /* CORREÇÃO DEFINITIVA DE LAYOUT PARA iOS/BRAVE */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #020617;
             color: #f8fafc;
             margin: 0;
             padding: 0;
-            /* Flexbox removido do mobile para evitar estiramento automático */
         }
 
         h1,
         h2,
-        .homa-value {
+        .homa-value,
+        .timer-font {
             font-family: 'Orbitron', sans-serif;
         }
 
-        /* Container Principal do App - Bloqueado no tamanho do ecrã */
         .app-container {
             width: 100%;
             max-width: 400px;
             margin: 0 auto;
             height: 100vh;
-            /* Fallback para browsers antigos */
             height: 100dvh;
-            /* Altura dinâmica exata do ecrã do telemóvel */
             background-color: #0f172a;
             position: relative;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            /* Corta qualquer coisa que tente esticar a caixa principal */
         }
 
-        /* Moldura de Telemóvel apenas para o Computador/Tablet */
         @media (min-width: 600px) {
             body {
                 display: flex;
@@ -62,14 +56,10 @@
             }
         }
 
-        /* A div interna: a única coisa que rola! */
         .app-content {
             flex: 1;
-            /* Força a ocupar apenas o espaço restante */
             min-height: 0;
-            /* CRÍTICO: Impede que a lista de refeições estique a caixa mãe */
             overflow-y: auto;
-            /* Permite rolar apenas aqui dentro */
             overflow-x: hidden;
             padding: 1.5rem;
         }
@@ -116,6 +106,24 @@
             100% {
                 background-position: 0% 50%;
             }
+        }
+
+        /* Animação para o Timer quando terminar */
+        @keyframes pulseAlert {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0px 0px rgba(239, 68, 68, 0);
+            }
+
+            50% {
+                box-shadow: 0 0 20px 5px rgba(239, 68, 68, 0.8);
+                border-color: #ef4444;
+            }
+        }
+
+        .timer-alert {
+            animation: pulseAlert 1s ease-in-out 3;
         }
 
         .checkbox-cyber {
@@ -204,6 +212,7 @@
 
         <div class="app-content hide-scroll pb-32">
 
+            <!-- HEADER -->
             <header class="flex justify-between items-center mb-6 mt-2">
                 <div>
                     <p class="text-slate-400 text-sm font-medium">Bom dia,</p>
@@ -226,7 +235,9 @@
                 </label>
             </header>
 
+            <!-- VIEW 1: HOME (DIETA E HOMA-IR) -->
             <div id="view-home" class="block fade-in">
+                <!-- CARD HOMA-IR -->
                 <div class="card-neon p-6">
                     <div class="flex justify-between items-start mb-4">
                         <div>
@@ -267,7 +278,8 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 mb-8">
+                <!-- GRID SECUNDÁRIO: Macros e Treino -->
+                <div class="grid grid-cols-2 gap-4 mb-4">
                     <div class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700 relative overflow-hidden group">
                         <div class="absolute -right-4 -top-4 w-16 h-16 bg-purple-900/20 rounded-full z-0 blur-xl"></div>
                         <i class="ph-fill ph-lightning text-purple-400 text-3xl mb-2 relative z-10"></i>
@@ -314,6 +326,29 @@
                     </div>
                 </div>
 
+                <!-- NOVA SEÇÃO: RADAR GLICÊMICO -->
+                <div class="bg-slate-800/40 p-5 rounded-3xl border border-slate-800 mb-8">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-sm font-bold text-slate-300 flex items-center gap-2 uppercase tracking-widest">
+                            <i class="ph-fill ph-drop text-rose-500 text-lg"></i> Radar Glicêmico
+                        </h3>
+                        <button onclick="adicionarGlicemia()"
+                            class="bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 text-[10px] font-bold px-3 py-1.5 rounded-lg border border-rose-500/30 transition-colors">
+                            + NOVA MEDIÇÃO
+                        </button>
+                    </div>
+
+                    <!-- Lista de Medições Dinâmica -->
+                    <div id="lista-glicemia" class="space-y-2">
+                        <!-- Será preenchido via JS. Placeholder abaixo para primeira vista -->
+                        <div
+                            class="text-center text-xs text-slate-500 py-2 border border-dashed border-slate-700 rounded-xl">
+                            Nenhuma medição registada hoje.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEÇÃO DE ROTINA (TIMELINE) -->
                 <h3
                     class="text-sm font-bold text-slate-300 mb-5 flex items-center gap-2 tracking-widest font-sans uppercase">
                     <i class="ph-fill ph-crosshair text-purple-500 text-lg"></i> Cronograma Diário
@@ -389,6 +424,7 @@
                 </div>
             </div>
 
+            <!-- VIEW 2: TREINO DE FORÇA -->
             <div id="view-workout" class="hidden fade-in">
                 <div class="flex items-center gap-3 mb-6">
                     <i class="ph-fill ph-barbell text-purple-500 text-3xl"></i>
@@ -398,7 +434,34 @@
                     </div>
                 </div>
 
-                <div class="mb-8">
+                <!-- NOVO: CRONÓMETRO DE DESCANSO -->
+                <div
+                    class="bg-slate-800/40 p-4 rounded-3xl border border-slate-800 mb-6 flex justify-between items-center shadow-lg">
+                    <div class="flex items-center gap-4">
+                        <div id="timer-circle"
+                            class="w-14 h-14 rounded-full border-[3px] border-cyan-500 flex items-center justify-center transition-colors duration-300">
+                            <span id="timer-display" class="text-lg text-white font-bold timer-font">40</span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-slate-200 tracking-widest uppercase">Descanso</p>
+                            <p class="text-[10px] text-slate-500">Padrão: 40 segundos</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <!-- Play/Pause -->
+                        <button onclick="toggleTimer()" id="btn-timer-play"
+                            class="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 flex items-center justify-center hover:bg-cyan-500/40 transition-colors">
+                            <i class="ph-fill ph-play text-xl"></i>
+                        </button>
+                        <!-- Reset -->
+                        <button onclick="resetTimer()"
+                            class="w-10 h-10 rounded-xl bg-slate-700/50 border border-slate-600 text-slate-400 flex items-center justify-center hover:bg-slate-700 transition-colors">
+                            <i class="ph-bold ph-arrow-counter-clockwise text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mb-6">
                     <h3 class="text-xs font-bold text-slate-500 mb-3 uppercase tracking-widest">Foco de Hoje</h3>
                     <div class="flex gap-2 overflow-x-auto hide-scroll pb-2">
                         <button onclick="mudarTreino('peito', this)"
@@ -490,6 +553,9 @@
     </div>
 
     <script>
+        // ==========================================
+        // DADOS DOS TREINOS (Para substituir depois)
+        // ==========================================
         const treinosData = {
             'peito': [
                 'Supino Reto (4x 10 a 12)',
@@ -521,6 +587,179 @@
             ]
         };
 
+        // ==========================================
+        // LÓGICA DO CRONÓMETRO DE DESCANSO
+        // ==========================================
+        let timerInterval;
+        let timeLeft = 40;
+        let isTimerRunning = false;
+
+        function updateTimerDisplay() {
+            document.getElementById('timer-display').innerText = timeLeft;
+        }
+
+        function toggleTimer() {
+            const btnPlay = document.getElementById('btn-timer-play');
+            const timerCircle = document.getElementById('timer-circle');
+
+            // Remove a classe de alerta (piscar vermelho) se ela existir
+            timerCircle.classList.remove('timer-alert', 'border-red-500');
+            timerCircle.classList.add('border-cyan-500');
+
+            if (isTimerRunning) {
+                // Pausar
+                clearInterval(timerInterval);
+                btnPlay.innerHTML = '<i class="ph-fill ph-play text-xl"></i>';
+                btnPlay.classList.replace('bg-rose-500/20', 'bg-cyan-500/20');
+                btnPlay.classList.replace('text-rose-400', 'text-cyan-400');
+                btnPlay.classList.replace('border-rose-500/50', 'border-cyan-500/50');
+                isTimerRunning = false;
+            } else {
+                // Iniciar
+                if (timeLeft === 0) timeLeft = 40; // Se estava a zero, reinicia antes de tocar
+                updateTimerDisplay();
+
+                btnPlay.innerHTML = '<i class="ph-fill ph-pause text-xl"></i>';
+                btnPlay.classList.replace('bg-cyan-500/20', 'bg-rose-500/20');
+                btnPlay.classList.replace('text-cyan-400', 'text-rose-400');
+                btnPlay.classList.replace('border-cyan-500/50', 'border-rose-500/50');
+
+                isTimerRunning = true;
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    updateTimerDisplay();
+
+                    if (timeLeft <= 0) {
+                        // Tempo Acabou!
+                        clearInterval(timerInterval);
+                        isTimerRunning = false;
+                        timeLeft = 40; // Prepara para a próxima
+
+                        // Reset visual do botão play
+                        btnPlay.innerHTML = '<i class="ph-fill ph-play text-xl"></i>';
+                        btnPlay.classList.replace('bg-rose-500/20', 'bg-cyan-500/20');
+                        btnPlay.classList.replace('text-rose-400', 'text-cyan-400');
+                        btnPlay.classList.replace('border-rose-500/50', 'border-cyan-500/50');
+
+                        // Alerta visual no círculo
+                        timerCircle.classList.remove('border-cyan-500');
+                        timerCircle.classList.add('timer-alert', 'border-red-500');
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timeLeft = 40;
+            updateTimerDisplay();
+
+            const btnPlay = document.getElementById('btn-timer-play');
+            btnPlay.innerHTML = '<i class="ph-fill ph-play text-xl"></i>';
+            btnPlay.classList.replace('bg-rose-500/20', 'bg-cyan-500/20');
+            btnPlay.classList.replace('text-rose-400', 'text-cyan-400');
+            btnPlay.classList.replace('border-rose-500/50', 'border-cyan-500/50');
+
+            const timerCircle = document.getElementById('timer-circle');
+            timerCircle.classList.remove('timer-alert', 'border-red-500');
+            timerCircle.classList.add('border-cyan-500');
+        }
+
+        // ==========================================
+        // LÓGICA DO RADAR GLICÊMICO
+        // ==========================================
+        let historicoGlicemia = [];
+
+        function adicionarGlicemia() {
+            let valor = prompt("Qual é o valor da sua Glicemia agora? (ex: 95)");
+
+            if (valor !== null && valor.trim() !== "") {
+                valor = valor.replace(',', '.');
+                if (!isNaN(valor)) {
+                    // Captura Data e Hora automaticamente
+                    const agora = new Date();
+                    const dataFormatada = agora.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                    const horaFormatada = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+                    const novaMedicao = {
+                        data: dataFormatada,
+                        hora: horaFormatada,
+                        valor: parseFloat(valor).toFixed(0) // Tira as casas decimais se o utilizador colocar
+                    };
+
+                    // Adiciona no início da lista
+                    historicoGlicemia.unshift(novaMedicao);
+
+                    // Mantém apenas as últimas 3 para não quebrar o layout
+                    if (historicoGlicemia.length > 3) {
+                        historicoGlicemia.pop();
+                    }
+
+                    salvarGlicemia();
+                    renderizarGlicemia();
+                } else {
+                    alert("Guerreiro, digite apenas números.");
+                }
+            }
+        }
+
+        function renderizarGlicemia() {
+            const container = document.getElementById('lista-glicemia');
+            container.innerHTML = ''; // Limpa a lista
+
+            if (historicoGlicemia.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-xs text-slate-500 py-3 border border-dashed border-slate-700 rounded-xl">
+                        Nenhuma medição registada.
+                    </div>`;
+                return;
+            }
+
+            historicoGlicemia.forEach((medicao, index) => {
+                const item = document.createElement('div');
+                // A última medição (índice 0) ganha destaque
+                if (index === 0) {
+                    item.className = "flex justify-between items-center bg-rose-950/20 p-3 rounded-xl border border-rose-900/30";
+                    item.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-rose-500/20 flex items-center justify-center text-rose-500">
+                                <i class="ph-fill ph-drop"></i>
+                            </div>
+                            <div>
+                                <p class="text-slate-200 text-sm font-bold">Hoje, ${medicao.hora}</p>
+                                <p class="text-slate-500 text-[10px]">${medicao.data}</p>
+                            </div>
+                        </div>
+                        <div class="text-xl font-bold text-white homa-value">
+                            ${medicao.valor} <span class="text-[10px] text-slate-500 font-sans font-normal">mg/dL</span>
+                        </div>
+                    `;
+                } else {
+                    item.className = "flex justify-between items-center p-2 px-3 rounded-xl hover:bg-slate-800/50 transition-colors";
+                    item.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-2 h-2 rounded-full bg-slate-600"></div>
+                            <p class="text-slate-400 text-xs">${medicao.data} às ${medicao.hora}</p>
+                        </div>
+                        <div class="text-sm font-bold text-slate-300 homa-value">
+                            ${medicao.valor}
+                        </div>
+                    `;
+                }
+                container.appendChild(item);
+            });
+        }
+
+        function salvarGlicemia() {
+            try {
+                localStorage.setItem('metaHoma_glicemia', JSON.stringify(historicoGlicemia));
+            } catch (e) { console.error("Erro a salvar glicemia"); }
+        }
+
+        // ==========================================
+        // OUTRAS LÓGICAS DA APP
+        // ==========================================
         function mudarTreino(tipo, btnSelecionado) {
             const botoes = document.querySelectorAll('.btn-treino-tab');
             botoes.forEach(btn => {
@@ -681,22 +920,32 @@
                 const today = new Date().toLocaleDateString();
                 const lastDate = localStorage.getItem('metaHoma_lastDate');
 
+                // Carrega Info do User
                 const savedName = localStorage.getItem('metaHoma_userName') || 'JOÃO SILVA';
                 document.getElementById('user-name-display').innerText = savedName;
-
                 const savedPic = localStorage.getItem('metaHoma_profilePic');
                 updateProfileAvatar(savedName, savedPic);
 
+                // Carrega HOMA
                 const savedHoma = localStorage.getItem('metaHoma_homaIR');
                 if (savedHoma) {
                     document.getElementById('homa-ir-display').innerText = savedHoma;
                 }
 
+                // Carrega Glicemia
+                const savedGlicemia = localStorage.getItem('metaHoma_glicemia');
+                if (savedGlicemia) {
+                    historicoGlicemia = JSON.parse(savedGlicemia);
+                    renderizarGlicemia();
+                }
+
+                // Reseta dias se virou a data
                 if (lastDate !== today) {
                     localStorage.removeItem('metaHoma_meals');
                     localStorage.setItem('metaHoma_lastDate', today);
                 }
 
+                // Carrega Refeições
                 const mealsData = localStorage.getItem('metaHoma_meals');
                 if (mealsData) {
                     const savedMeals = JSON.parse(mealsData);
@@ -707,6 +956,7 @@
                     updateProtein();
                 }
 
+                // Carrega Treinos semanais
                 const savedWorkouts = localStorage.getItem('metaHoma_workouts');
                 if (savedWorkouts !== null) {
                     diasTreinados = parseInt(savedWorkouts);
