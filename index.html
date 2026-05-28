@@ -587,43 +587,163 @@
 
     </div>
 
-    <script>
-        // Lógica de Proteína
-        function updateProtein() {
+    <script type="module">
+        // Importa o Firebase e o Banco de Dados (Firestore)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+        // Suas chaves de acesso
+        const firebaseConfig = {
+            apiKey: "AIzaSyBGx0blKfQF6cMOYiFkwBfMbBFVwbr3A9c",
+            authDomain: "metahoma-app.firebaseapp.com",
+            projectId: "metahoma-app",
+            storageBucket: "metahoma-app.firebasestorage.app",
+            messagingSenderId: "1015016369498",
+            appId: "1:1015016369498:web:3b9d54058dba82f6335763"
+        };
+
+        // Inicializa a Nuvem
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Cria a referência do seu perfil no banco. 
+        // Ele vai criar a pasta "usuarios" e o arquivo "perfil_principal" automaticamente.
+        const userDocRef = doc(db, "usuarios", "perfil_principal");
+
+        // Variáveis Globais
+        let diasTreinados = 0;
+        let tempoDescanso = 40;
+        let timerRodando = false;
+        let timerIntervalo;
+        let medicoesGlicemia = [];
+
+        // ==========================================
+        // 1. SINCRONIZAÇÃO EM TEMPO REAL (FIREBASE)
+        // O "onSnapshot" fica vigiando o banco e atualiza a tela na hora
+        // ==========================================
+        onSnapshot(userDocRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const dados = docSnap.data();
+
+                // Atualiza Nome e HOMA-IR
+                if (dados.nome) document.getElementById('user-name-display').innerText = dados.nome;
+                if (dados.homaIR) document.getElementById('homa-ir-display').innerText = dados.homaIR;
+
+                // Atualiza Treinos
+                if (dados.workouts !== undefined) {
+                    diasTreinados = dados.workouts;
+                    document.getElementById('workout-count').innerText = diasTreinados;
+                    const barrasProgresso = document.querySelectorAll('.workout-bar');
+                    barrasProgresso.forEach(bar => {
+                        bar.classList.remove('bg-cyan-400', 'shadow-[0_0_8px_rgba(6,182,212,0.8)]');
+                        bar.classList.add('bg-slate-700');
+                    });
+                    for (let i = 0; i < diasTreinados; i++) {
+                        barrasProgresso[i].classList.remove('bg-slate-700');
+                        barrasProgresso[i].classList.add('bg-cyan-400', 'shadow-[0_0_8px_rgba(6,182,212,0.8)]');
+                    }
+                }
+
+                // Atualiza Glicemia
+                if (dados.glicemia) {
+                    medicoesGlicemia = dados.glicemia;
+                    renderizarGlicemia();
+                }
+
+                // Atualiza Refeições diárias (Limpa se virar o dia)
+                const today = new Date().toLocaleDateString();
+                if (dados.lastDate === today && dados.meals) {
+                    const checkboxes = document.querySelectorAll('.checkbox-refeicao');
+                    checkboxes.forEach((cb, index) => {
+                        cb.checked = dados.meals[index] || false;
+                    });
+                } else if (dados.lastDate !== today) {
+                    document.querySelectorAll('.checkbox-refeicao').forEach(cb => cb.checked = false);
+                }
+                calcularProteinaVisual();
+
+                // Atualiza Foto
+                if (dados.profilePic) {
+                    document.getElementById('profile-img').src = dados.profilePic;
+                } else if (dados.nome) {
+                    const words = dados.nome.trim().split(' ').filter(w => w.length > 0);
+                    let initials = 'US';
+                    if (words.length === 1) initials = words[0].substring(0, 2).toUpperCase();
+                    else if (words.length > 1) initials = (words[0][0] + words[words.length - 1][0]).toUpperCase();
+                    document.getElementById('profile-img').src = `https://placehold.co/100x100/06b6d4/000000?text=${initials}`;
+                }
+            }
+        });
+
+        // ==========================================
+        // 2. FUNÇÃO PARA ENVIAR ALTERAÇÕES AO BANCO
+        // ==========================================
+        function salvarNoFirebase() {
+            const mealChecks = Array.from(document.querySelectorAll('.checkbox-refeicao')).map(cb => cb.checked);
+            let profileSrc = document.getElementById('profile-img').src;
+            if (profileSrc.includes('placehold')) profileSrc = null; // Não salva o placeholder, apenas a foto real
+
+            const dados = {
+                nome: document.getElementById('user-name-display').innerText,
+                homaIR: document.getElementById('homa-ir-display').innerText,
+                workouts: diasTreinados,
+                meals: mealChecks,
+                lastDate: new Date().toLocaleDateString(),
+                glicemia: medicoesGlicemia,
+                profilePic: profileSrc
+            };
+
+            // Salva na nuvem mesclando com o que já tem lá
+            setDoc(userDocRef, dados, { merge: true }).catch(err => console.error(err));
+        }
+
+        // ==========================================
+        // 3. SEU GOOGLE SHEETS AINDA ESTÁ AQUI
+        // ==========================================
+        function enviarParaGoogleSheets(categoria, valor) {
+            const url = "https://script.google.com/macros/s/AKfycbz9CURNJE62U2H6o8tHZw1VXlB5INj_7ixlHUFBu5JwYkNz438MfX-igZ2Oxgpyq3pD/exec";
+            fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({ categoria: categoria, valor: valor })
+            }).catch(error => console.error(error));
+        }
+
+        // ==========================================
+        // 4. FUNÇÕES DO APP
+        // (Usamos window. para conectar com o HTML)
+        // ==========================================
+
+        window.updateProtein = function () {
+            calcularProteinaVisual();
+            salvarNoFirebase();
+        };
+
+        function calcularProteinaVisual() {
             const checkboxes = document.querySelectorAll('.checkbox-refeicao');
             let totalProtein = 0;
-            const meta = 175;
-
             checkboxes.forEach(cb => {
-                if (cb.checked) {
-                    totalProtein += parseInt(cb.getAttribute('data-protein'));
-                }
+                if (cb.checked) totalProtein += parseInt(cb.getAttribute('data-protein'));
             });
-
             document.getElementById('protein-count').innerText = totalProtein;
 
-            let percentage = (totalProtein / meta) * 100;
+            let percentage = (totalProtein / 175) * 100;
             if (percentage > 100) percentage = 100;
 
             const bar = document.getElementById('protein-bar');
             bar.style.width = percentage + '%';
-
             if (percentage >= 100) {
-                bar.classList.remove('bg-purple-500', 'shadow-[0_0_10px_rgba(168,85,247,0.5)]');
-                bar.classList.add('bg-cyan-400', 'shadow-[0_0_15px_rgba(6,182,212,0.8)]');
+                bar.classList.replace('bg-purple-500', 'bg-cyan-400');
+                bar.classList.replace('shadow-[0_0_10px_rgba(168,85,247,0.5)]', 'shadow-[0_0_15px_rgba(6,182,212,0.8)]');
             } else {
-                bar.classList.add('bg-purple-500', 'shadow-[0_0_10px_rgba(168,85,247,0.5)]');
-                bar.classList.remove('bg-cyan-400', 'shadow-[0_0_15px_rgba(6,182,212,0.8)]');
+                bar.classList.replace('bg-cyan-400', 'bg-purple-500');
+                bar.classList.replace('shadow-[0_0_15px_rgba(6,182,212,0.8)]', 'shadow-[0_0_10px_rgba(168,85,247,0.5)]');
             }
-
-            saveState();
         }
 
-        // Navegação de Abas
-        function switchTab(tabName) {
+        window.switchTab = function (tabName) {
             document.getElementById('view-home').classList.add('hidden');
             document.getElementById('view-workout').classList.add('hidden');
-
             document.getElementById('tab-home').classList.remove('active', 'text-cyan-400');
             document.getElementById('tab-workout').classList.remove('active', 'text-purple-400');
 
@@ -634,43 +754,25 @@
                 document.getElementById('view-workout').classList.remove('hidden');
                 document.getElementById('tab-workout').classList.add('active', 'text-purple-400');
             }
-        }
+        };
 
-        // Lógica de Foco de Treino
-        function selecionarFoco(btn) {
+        window.selecionarFoco = function (btn) {
             const botoes = document.querySelectorAll('.foco-btn');
-            const classesInativas = ['bg-slate-800', 'border-slate-700', 'text-slate-400', 'hover:text-slate-200'];
-            const classesAtivas = ['bg-purple-500/20', 'border-purple-500', 'text-purple-400', 'shadow-[0_0_10px_rgba(168,85,247,0.3)]'];
-
-            // Remove o estado ativo de todos os botões e aplica o inativo
             botoes.forEach(b => {
-                b.classList.remove(...classesAtivas);
-                b.classList.add(...classesInativas);
+                b.classList.remove('bg-purple-500/20', 'border-purple-500', 'text-purple-400', 'shadow-[0_0_10px_rgba(168,85,247,0.3)]');
+                b.classList.add('bg-slate-800', 'border-slate-700', 'text-slate-400', 'hover:text-slate-200');
             });
+            btn.classList.remove('bg-slate-800', 'border-slate-700', 'text-slate-400', 'hover:text-slate-200');
+            btn.classList.add('bg-purple-500/20', 'border-purple-500', 'text-purple-400', 'shadow-[0_0_10px_rgba(168,85,247,0.3)]');
+        };
 
-            // Aplica o estado ativo apenas no botão que foi clicado
-            btn.classList.remove(...classesInativas);
-            btn.classList.add(...classesAtivas);
-        }
-
-        // Lógica de Treino
-        let diasTreinados = 0;
-        function concluirTreino() {
-            const checksTreino = document.querySelectorAll('.checkbox-treino:checked');
-            if (checksTreino.length === 0) {
-                alert("Guerreiro, marque pelo menos um exercício antes de concluir!");
-                return;
-            }
+        window.concluirTreino = function () {
+            const checks = document.querySelectorAll('.checkbox-treino:checked');
+            if (checks.length === 0) return alert("Marque pelo menos um exercício!");
 
             if (diasTreinados < 5) {
                 diasTreinados++;
-                document.getElementById('workout-count').innerText = diasTreinados;
-
-                const barrasProgresso = document.querySelectorAll('.workout-bar');
-                for (let i = 0; i < diasTreinados; i++) {
-                    barrasProgresso[i].classList.remove('bg-slate-700');
-                    barrasProgresso[i].classList.add('bg-cyan-400', 'shadow-[0_0_8px_rgba(6,182,212,0.8)]');
-                }
+                salvarNoFirebase(); // Salva novo treino na nuvem
 
                 const btn = document.getElementById('btn-concluir');
                 btn.innerText = "TREINO REGISTADO!";
@@ -680,368 +782,148 @@
                     document.querySelectorAll('.checkbox-treino').forEach(cb => cb.checked = false);
                     btn.innerText = "CONCLUIR TREINO DE HOJE";
                     btn.classList.remove('bg-emerald-500');
-
-                    saveState();
-                    switchTab('home');
+                    window.switchTab('home');
                 }, 1500);
             } else {
-                alert("Meta semanal batida! Você já treinou 5 dias.");
+                alert("Meta batida! Você já treinou 5 dias.");
             }
-        }
+        };
 
-        // ==========================================
-        // SISTEMA DE FOTO DE PERFIL / INICIAIS
-        // ==========================================
-
-        function getInitials(name) {
-            const words = name.trim().split(' ').filter(w => w.length > 0);
-            if (words.length === 0) return 'US';
-            if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
-            return (words[0][0] + words[words.length - 1][0]).toUpperCase();
-        }
-
-        function updateProfileAvatar(name, customImageBase64) {
-            const imgEl = document.getElementById('profile-img');
-            if (customImageBase64) {
-                imgEl.src = customImageBase64;
-            } else {
-                const initials = getInitials(name || "JOÃO SILVA");
-                imgEl.src = `https://placehold.co/100x100/06b6d4/000000?text=${initials}`;
+        window.resetarSemana = function () {
+            if (confirm("Zerar dias de treino?")) {
+                diasTreinados = 0;
+                salvarNoFirebase(); // Sincroniza o zero na nuvem
             }
-        }
+        };
 
-        function atualizarFotoPerfil(event) {
+        window.editarHomaIR = function () {
+            let novoValor = prompt("Novo resultado do HOMA-IR?", document.getElementById('homa-ir-display').innerText);
+            if (novoValor && novoValor.trim() !== "") {
+                novoValor = novoValor.replace(',', '.');
+                if (!isNaN(novoValor)) {
+                    document.getElementById('homa-ir-display').innerText = parseFloat(novoValor).toFixed(2);
+                    salvarNoFirebase();
+                    enviarParaGoogleSheets("HOMA-IR", parseFloat(novoValor));
+                } else alert("Apenas números.");
+            }
+        };
+
+        window.editarNome = function () {
+            let novoNome = prompt("Como gostaria de ser chamado?", document.getElementById('user-name-display').innerText);
+            if (novoNome && novoNome.trim() !== "") {
+                document.getElementById('user-name-display').innerText = novoNome.trim().toUpperCase();
+                salvarNoFirebase();
+            }
+        };
+
+        window.atualizarFotoPerfil = function (event) {
             const file = event.target.files[0];
             if (file) {
-                if (file.size > 2500000) {
-                    alert("A imagem é um bocado grande. Por favor, escolhe uma foto com menos de 2.5MB.");
-                    return;
-                }
+                if (file.size > 2500000) return alert("Foto com menos de 2.5MB, por favor.");
                 const reader = new FileReader();
                 reader.onload = function (e) {
-                    const base64Image = e.target.result;
-                    try {
-                        localStorage.setItem('metaHoma_profilePic', base64Image);
-                        const currentName = document.getElementById('user-name-display').innerText;
-                        updateProfileAvatar(currentName, base64Image);
-                    } catch (err) {
-                        alert("Erro ao guardar imagem. A imagem pode ser muito pesada para a memória do navegador.");
-                    }
+                    document.getElementById('profile-img').src = e.target.result;
+                    salvarNoFirebase(); // Sincroniza foto base64 na nuvem
                 };
                 reader.readAsDataURL(file);
             }
-        }
+        };
 
-        // ==========================================
-        // SISTEMA DO CRONÔMETRO DE DESCANSO
-        // ==========================================
-        let tempoDescanso = 40; // 40 segundos
-        let timerRodando = false;
-        let timerIntervalo;
-
-        function atualizarDisplayTimer() {
-            let seg = tempoDescanso % 60;
-            let min = Math.floor(tempoDescanso / 60);
-            const display = document.getElementById('timer-display');
-            if (display) {
-                display.innerText = `${min.toString().padStart(2, '0')}:${seg.toString().padStart(2, '0')}`;
-
-                // Fica vermelho nos últimos 5 segundos
-                if (tempoDescanso <= 5 && tempoDescanso > 0) {
-                    display.classList.add('text-pink-500');
-                } else {
-                    display.classList.remove('text-pink-500');
-                }
-            }
-        }
-
-        function iniciarTimer() {
-            const btn = document.getElementById('btn-timer-start');
-            const icone = document.getElementById('icone-play-pause');
-
-            if (timerRodando) {
-                // Pausar
-                clearInterval(timerIntervalo);
-                timerRodando = false;
-                icone.classList.replace('ph-pause', 'ph-play');
-                btn.classList.remove('bg-emerald-500', 'shadow-[0_0_15px_rgba(16,185,129,0.4)]');
-                btn.classList.add('bg-purple-600', 'shadow-[0_0_15px_rgba(168,85,247,0.4)]');
-            } else {
-                // Iniciar
-                if (tempoDescanso <= 0) tempoDescanso = 40;
-
-                timerRodando = true;
-                icone.classList.replace('ph-play', 'ph-pause');
-                btn.classList.remove('bg-purple-600', 'shadow-[0_0_15px_rgba(168,85,247,0.4)]');
-                btn.classList.add('bg-emerald-500', 'shadow-[0_0_15px_rgba(16,185,129,0.4)]');
-
-                timerIntervalo = setInterval(() => {
-                    tempoDescanso--;
-                    atualizarDisplayTimer();
-
-                    if (tempoDescanso <= 0) {
-                        clearInterval(timerIntervalo);
-                        timerRodando = false;
-                        icone.classList.replace('ph-pause', 'ph-play');
-                        btn.classList.remove('bg-emerald-500', 'shadow-[0_0_15px_rgba(16,185,129,0.4)]');
-                        btn.classList.add('bg-purple-600', 'shadow-[0_0_15px_rgba(168,85,247,0.4)]');
-
-                        if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]); // Vibra se suportado
-                    }
-                }, 1000);
-            }
-        }
-
-        function zerarTimer() {
-            clearInterval(timerIntervalo);
-            timerRodando = false;
-            tempoDescanso = 40;
-            atualizarDisplayTimer();
-
-            const btn = document.getElementById('btn-timer-start');
-            const icone = document.getElementById('icone-play-pause');
-            icone.classList.replace('ph-pause', 'ph-play');
-            btn.classList.remove('bg-emerald-500', 'shadow-[0_0_15px_rgba(16,185,129,0.4)]');
-            btn.classList.add('bg-purple-600', 'shadow-[0_0_15px_rgba(168,85,247,0.4)]');
-        }
-
-        // ==========================================
-        // SISTEMA DO MONITOR GLICÊMICO
-        // ==========================================
-        let medicoesGlicemia = [];
-
-        function abrirModalGlicemia() {
-            const modal = document.getElementById('modal-glicemia');
-            const modalContent = document.getElementById('modal-glicemia-content');
-
+        window.abrirModalGlicemia = function () {
             const agora = new Date();
-            // Compensação simples de fuso horário para bater com a data/hora local
-            const dataHoje = new Date(agora.getTime() - (agora.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-            const horaAtual = agora.toTimeString().substring(0, 5);
-
-            document.getElementById('glic-date').value = dataHoje;
-            document.getElementById('glic-time').value = horaAtual;
+            document.getElementById('glic-date').value = new Date(agora.getTime() - (agora.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+            document.getElementById('glic-time').value = agora.toTimeString().substring(0, 5);
             document.getElementById('glic-value').value = '';
-
-            modal.classList.remove('hidden');
+            document.getElementById('modal-glicemia').classList.remove('hidden');
             setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                modalContent.classList.remove('scale-95');
+                document.getElementById('modal-glicemia').classList.remove('opacity-0');
+                document.getElementById('modal-glicemia-content').classList.remove('scale-95');
             }, 10);
-        }
+        };
 
-        function fecharModalGlicemia() {
-            const modal = document.getElementById('modal-glicemia');
-            const modalContent = document.getElementById('modal-glicemia-content');
+        window.fecharModalGlicemia = function () {
+            document.getElementById('modal-glicemia').classList.add('opacity-0');
+            document.getElementById('modal-glicemia-content').classList.add('scale-95');
+            setTimeout(() => document.getElementById('modal-glicemia').classList.add('hidden'), 300);
+        };
 
-            modal.classList.add('opacity-0');
-            modalContent.classList.add('scale-95');
-
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
-        }
-
-        function salvarGlicemia() {
+        window.salvarGlicemia = function () {
             const data = document.getElementById('glic-date').value;
             const hora = document.getElementById('glic-time').value;
             const valor = document.getElementById('glic-value').value;
+            if (!data || !hora || !valor) return alert("Preencha todos os campos!");
 
-            if (!data || !hora || !valor) {
-                alert("Por favor, preencha todos os campos!");
-                return;
-            }
+            medicoesGlicemia.unshift({ id: Date.now(), data, hora, valor: parseInt(valor) });
+            if (medicoesGlicemia.length > 20) medicoesGlicemia.pop();
 
-            const novaMedicao = {
-                id: Date.now(),
-                data: data,
-                hora: hora,
-                valor: parseInt(valor)
-            };
-
-            medicoesGlicemia.unshift(novaMedicao);
-
-            // Mantém no histórico as últimas 20 medições (para não pesar o localStorage)
-            if (medicoesGlicemia.length > 20) {
-                medicoesGlicemia.pop();
-            }
-
-            localStorage.setItem('metaHoma_glicemia', JSON.stringify(medicoesGlicemia));
-
-            renderizarGlicemia();
-            fecharModalGlicemia();
-        }
+            salvarNoFirebase();
+            enviarParaGoogleSheets("Glicemia", parseInt(valor));
+            window.fecharModalGlicemia();
+        };
 
         function renderizarGlicemia() {
             const lista = document.getElementById('lista-glicemia');
             if (!lista) return;
-
             lista.innerHTML = '';
-
             if (medicoesGlicemia.length === 0) {
                 lista.innerHTML = '<p class="text-xs text-slate-500 text-center py-2">Nenhuma medição registada.</p>';
                 return;
             }
-
-            // Exibir as 3 últimas medições
-            const paraExibir = medicoesGlicemia.slice(0, 3);
-
-            paraExibir.forEach(m => {
-                const partesData = m.data.split('-');
-                const dataFormatada = `${partesData[2]}/${partesData[1]}`;
-
-                let corValor = 'text-cyan-400';
-                if (m.valor >= 100 || m.valor < 70) corValor = 'text-pink-500 font-bold';
-
-                const div = document.createElement('div');
-                div.className = 'flex justify-between items-center bg-slate-900/80 p-3 rounded-xl border border-slate-700/50';
-                div.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <div class="bg-slate-800 px-2 py-1 rounded text-[10px] text-slate-400 font-medium">
-                            ${dataFormatada}
+            medicoesGlicemia.slice(0, 3).forEach(m => {
+                const parts = m.data.split('-');
+                let corValor = (m.valor >= 100 || m.valor < 70) ? 'text-pink-500 font-bold' : 'text-cyan-400';
+                lista.innerHTML += `
+                    <div class="flex justify-between items-center bg-slate-900/80 p-3 rounded-xl border border-slate-700/50 mb-2">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-slate-800 px-2 py-1 rounded text-[10px] text-slate-400 font-medium">${parts[2]}/${parts[1]}</div>
+                            <div class="text-xs text-slate-300 flex items-center gap-1"><i class="ph-regular ph-clock text-slate-500"></i> ${m.hora}</div>
                         </div>
-                        <div class="text-xs text-slate-300 flex items-center gap-1">
-                            <i class="ph-regular ph-clock text-slate-500"></i> ${m.hora}
+                        <div class="text-sm font-bold ${corValor} homa-value flex items-center gap-1">
+                            ${m.valor} <span class="text-[9px] text-slate-500 font-sans font-normal">mg/dL</span>
                         </div>
-                    </div>
-                    <div class="text-sm font-bold ${corValor} homa-value flex items-center gap-1">
-                        ${m.valor} <span class="text-[9px] text-slate-500 font-sans font-normal">mg/dL</span>
-                    </div>
-                `;
-                lista.appendChild(div);
+                    </div>`;
             });
         }
 
         // ==========================================
-        // ARMAZENAMENTO E MEMÓRIA GLOBAL
+        // 5. CRONÔMETRO
         // ==========================================
-        function saveState() {
-            const mealChecks = Array.from(document.querySelectorAll('.checkbox-refeicao')).map(cb => cb.checked);
-            localStorage.setItem('metaHoma_meals', JSON.stringify(mealChecks));
-            localStorage.setItem('metaHoma_workouts', diasTreinados);
-            localStorage.setItem('metaHoma_lastDate', new Date().toLocaleDateString());
-        }
+        window.atualizarDisplayTimer = function () {
+            let display = document.getElementById('timer-display');
+            display.innerText = `${Math.floor(tempoDescanso / 60).toString().padStart(2, '0')}:${(tempoDescanso % 60).toString().padStart(2, '0')}`;
+            (tempoDescanso <= 5 && tempoDescanso > 0) ? display.classList.add('text-pink-500') : display.classList.remove('text-pink-500');
+        };
 
-        function loadState() {
-            const today = new Date().toLocaleDateString();
-            const lastDate = localStorage.getItem('metaHoma_lastDate');
-
-            const savedName = localStorage.getItem('metaHoma_userName') || 'JOÃO SILVA';
-            document.getElementById('user-name-display').innerText = savedName;
-
-            const savedPic = localStorage.getItem('metaHoma_profilePic');
-            updateProfileAvatar(savedName, savedPic);
-
-            const savedHoma = localStorage.getItem('metaHoma_homaIR');
-            if (savedHoma) {
-                document.getElementById('homa-ir-display').innerText = savedHoma;
+        window.iniciarTimer = function () {
+            const btn = document.getElementById('btn-timer-start'), icone = document.getElementById('icone-play-pause');
+            if (timerRodando) {
+                clearInterval(timerIntervalo); timerRodando = false;
+                icone.classList.replace('ph-pause', 'ph-play');
+                btn.classList.replace('bg-emerald-500', 'bg-purple-600');
+            } else {
+                if (tempoDescanso <= 0) tempoDescanso = 40;
+                timerRodando = true;
+                icone.classList.replace('ph-play', 'ph-pause');
+                btn.classList.replace('bg-purple-600', 'bg-emerald-500');
+                timerIntervalo = setInterval(() => {
+                    tempoDescanso--; window.atualizarDisplayTimer();
+                    if (tempoDescanso <= 0) {
+                        clearInterval(timerIntervalo); timerRodando = false;
+                        icone.classList.replace('ph-pause', 'ph-play');
+                        btn.classList.replace('bg-emerald-500', 'bg-purple-600');
+                        if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
+                    }
+                }, 1000);
             }
+        };
 
-            if (lastDate !== today) {
-                localStorage.removeItem('metaHoma_meals');
-                localStorage.setItem('metaHoma_lastDate', today);
-            }
+        window.zerarTimer = function () {
+            clearInterval(timerIntervalo); timerRodando = false; tempoDescanso = 40;
+            window.atualizarDisplayTimer();
+            document.getElementById('icone-play-pause').classList.replace('ph-pause', 'ph-play');
+            document.getElementById('btn-timer-start').classList.replace('bg-emerald-500', 'bg-purple-600');
+        };
 
-            const savedMeals = JSON.parse(localStorage.getItem('metaHoma_meals'));
-            if (savedMeals) {
-                const checkboxes = document.querySelectorAll('.checkbox-refeicao');
-                checkboxes.forEach((cb, index) => {
-                    cb.checked = savedMeals[index] || false;
-                });
-                updateProtein();
-            }
-
-            const savedWorkouts = localStorage.getItem('metaHoma_workouts');
-            if (savedWorkouts !== null) {
-                diasTreinados = parseInt(savedWorkouts);
-                document.getElementById('workout-count').innerText = diasTreinados;
-                const barrasProgresso = document.querySelectorAll('.workout-bar');
-                for (let i = 0; i < diasTreinados; i++) {
-                    barrasProgresso[i].classList.remove('bg-slate-700');
-                    barrasProgresso[i].classList.add('bg-cyan-400', 'shadow-[0_0_8px_rgba(6,182,212,0.8)]');
-                }
-            }
-
-            // Carregar Glicemia
-            const glicemiaSalva = localStorage.getItem('metaHoma_glicemia');
-            if (glicemiaSalva) {
-                medicoesGlicemia = JSON.parse(glicemiaSalva);
-            }
-            renderizarGlicemia();
-        }
-
-        function resetarSemana() {
-            if (confirm("Deseja zerar os seus dias de treino para iniciar uma nova semana?")) {
-                diasTreinados = 0;
-                document.getElementById('workout-count').innerText = diasTreinados;
-                const barrasProgresso = document.querySelectorAll('.workout-bar');
-                barrasProgresso.forEach(bar => {
-                    bar.classList.remove('bg-cyan-400', 'shadow-[0_0_8px_rgba(6,182,212,0.8)]');
-                    bar.classList.add('bg-slate-700');
-                });
-                saveState();
-            }
-        }
-
-        function editarHomaIR() {
-            const valorAtual = document.getElementById('homa-ir-display').innerText;
-            let novoValor = prompt("Parabéns pelo novo exame! Qual é o seu novo resultado do HOMA-IR?", valorAtual);
-
-            if (novoValor !== null && novoValor.trim() !== "") {
-                novoValor = novoValor.replace(',', '.');
-                if (!isNaN(novoValor)) {
-                    const valorFormatado = parseFloat(novoValor).toFixed(2);
-                    document.getElementById('homa-ir-display').innerText = valorFormatado;
-                    localStorage.setItem('metaHoma_homaIR', valorFormatado);
-                    alert("HOMA-IR atualizado com sucesso! Continue o bom trabalho.");
-                } else {
-                    alert("Por favor, digite apenas números (ex: 8.50).");
-                }
-            }
-        }
-
-        function editarNome() {
-            const nomeAtual = document.getElementById('user-name-display').innerText;
-            let novoNome = prompt("Como você gostaria de ser chamado?", nomeAtual);
-
-            if (novoNome !== null && novoNome.trim() !== "") {
-                const nomeFormatado = novoNome.trim().toUpperCase();
-                document.getElementById('user-name-display').innerText = nomeFormatado;
-                localStorage.setItem('metaHoma_userName', nomeFormatado);
-
-                const savedPic = localStorage.getItem('metaHoma_profilePic');
-                updateProfileAvatar(nomeFormatado, savedPic);
-            }
-        }
-        // ==========================================
-        // INTEGRAÇÃO COM GOOGLE SHEETS
-        // ==========================================
-        function enviarParaGoogleSheets(categoria, valor) {
-            const url = "https://script.google.com/macros/s/AKfycbz9CURNJE62U2H6o8tHZw1VXlB5INj_7ixlHUFBu5JwYkNz438MfX-igZ2Oxgpyq3pD/exec";
-
-            const payload = {
-                categoria: categoria,
-                valor: valor
-            };
-
-            //Usamos 'text/plain' para evitar o erro de CORS no navegador.
-            //O Apps Script vai receber e fazer o JSON.parse normalmente.
-            fetch(url, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "text/plain;charset=utf-8",
-                },
-                body: JSON.stringify(payload)
-            })
-                .then(response => {
-                    console.log(`Dados enviados para a planilha: ${categoria} - ${valor}`);
-                })
-                .catch(error => {
-                    console.error("Erro ao enviar para o Google Sheets:", error);
-                });
-        }
-
-        window.onload = loadState;
     </script>
 </body>
 
