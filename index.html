@@ -1013,6 +1013,33 @@
                 updateProfileAvatar(nomeFormatado, savedPic);
             }
         }
+        // ==========================================
+        // INTEGRAÇÃO COM GOOGLE SHEETS
+        // ==========================================
+        function enviarParaGoogleSheets(categoria, valor) {
+            const url = "https://script.google.com/macros/s/AKfycbz9CURNJE62U2H6o8tHZw1VXlB5INj_7ixlHUFBu5JwYkNz438MfX-igZ2Oxgpyq3pD/exec";
+
+            const payload = {
+                categoria: categoria,
+                valor: valor
+            };
+
+            //Usamos 'text/plain' para evitar o erro de CORS no navegador.
+            //O Apps Script vai receber e fazer o JSON.parse normalmente.
+            fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8",
+                },
+                body: JSON.stringify(payload)
+            })
+                .then(response => {
+                    console.log(`Dados enviados para a planilha: ${categoria} - ${valor}`);
+                })
+                .catch(error => {
+                    console.error("Erro ao enviar para o Google Sheets:", error);
+                });
+        }
 
         window.onload = loadState;
     </script>
