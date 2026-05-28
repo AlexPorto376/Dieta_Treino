@@ -819,11 +819,43 @@
         window.atualizarFotoPerfil = function (event) {
             const file = event.target.files[0];
             if (file) {
-                if (file.size > 2500000) return alert("Foto com menos de 2.5MB, por favor.");
                 const reader = new FileReader();
                 reader.onload = function (e) {
-                    document.getElementById('profile-img').src = e.target.result;
-                    salvarNoFirebase(); // Sincroniza foto base64 na nuvem
+                    // Cria uma imagem temporária na memória para redimensionar
+                    const img = new Image();
+                    img.onload = function () {
+                        const canvas = document.createElement('canvas');
+                        // Tamanho máximo ideal para foto redonda de perfil (150x150 pixels)
+                        const MAX_SIZE = 150;
+                        let width = img.width;
+                        let height = img.height;
+
+                        // Calcula a proporção
+                        if (width > height) {
+                            if (width > MAX_SIZE) {
+                                height *= MAX_SIZE / width;
+                                width = MAX_SIZE;
+                            }
+                        } else {
+                            if (height > MAX_SIZE) {
+                                width *= MAX_SIZE / height;
+                                height = MAX_SIZE;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // Converte para JPG com 70% de qualidade (fica super leve!)
+                        const fotoComprimida = canvas.toDataURL('image/jpeg', 0.7);
+
+                        // Atualiza a tela e salva na nuvem
+                        document.getElementById('profile-img').src = fotoComprimida;
+                        salvarNoFirebase();
+                    };
+                    img.src = e.target.result;
                 };
                 reader.readAsDataURL(file);
             }
